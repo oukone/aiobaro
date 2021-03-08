@@ -25,7 +25,7 @@ from .models import (
     RoomVisibility,
     UserKind,
 )
-from .tools import login_required, matrix_client
+from .tools import matrix_client
 
 
 class BaseMatrixClient:
@@ -39,6 +39,7 @@ class BaseMatrixClient:
         self.version = version
         self.homeserver = homeserver
         self.access_token = access_token
+        self._client = matrix_client
         self.client = functools.partial(
             matrix_client,
             self.client_path,
@@ -111,8 +112,13 @@ class MatrixClient(BaseMatrixClient):
             "login",
             json=dict(filter(lambda x: x[1], data.items())),
         )
-        if response.status_code == 200:
+        if response.ok:
             self.access_token = response.json()["access_token"]
+            self.client = functools.partial(
+                self._client,
+                self.client_path,
+                access_token=self.access_token,
+            )
         return response
 
     async def register(
@@ -169,8 +175,13 @@ class MatrixClient(BaseMatrixClient):
         response = await self.client(
             "POST", "register", params={"kind": kind}, json=data
         )
-        if response.status_code == 200:
+        if response.ok:
             self.access_token = response.json()["access_token"]
+            self.client = functools.partial(
+                self._client,
+                self.client_path,
+                access_token=self.access_token,
+            )
         return response
 
     async def logout(self, all_devices: bool = True) -> httpx.Response:
@@ -232,8 +243,8 @@ class MatrixClient(BaseMatrixClient):
         Requires auth:  Yes.
         """
         return await self.client(
-            "sync",
             "GET",
+            "sync",
             params=dict(
                 filter(
                     lambda x: x[1],

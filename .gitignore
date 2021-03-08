@@ -16,3 +16,5 @@ report.xml
 venv
 **/*.egg-info*/
 **/__pycache__/
+
+.docker/volumes/pg_matrix_data

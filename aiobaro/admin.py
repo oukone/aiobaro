@@ -1,12 +1,9 @@
 import functools
 
-from .tools import login_required, matrix_client
+from .tools import matrix_client
 
 
 class MatrixAdminClient:
-
-    admin_root = "/_synapse/admin/v2/"
-
     def __init__(
         self,
         homeserver: str,

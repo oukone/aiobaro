@@ -1,0 +1,49 @@
+#    export APP_ENV=development or export APP_ENV=production
+# docker network create baro-net
+version: "3.3"
+
+services:
+  postgres:
+    container_name: postgres-matrix
+    image: postgres
+    restart: always
+    volumes:
+      - ./.docker/volumes/pg_matrix_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: synapse
+      POSTGRES_USER: synapse
+      POSTGRES_PASSWORD: ChangeMe
+      POSTGRES_INITDB_ARGS: "--encoding='UTF8' --lc-collate='C' --lc-ctype='C'"
+    networks:
+      - baro-net
+
+  matrix:
+    # docker-compose run --rm matrix generate
+    # docker exec -it matrix register_new_matrix_user \
+    #          http://localhost:8008 -c /data/homeserver.yaml -u fogo -p ChangeMe --admin
+    image: matrixdotorg/synapse
+    container_name: matrix
+    restart: always
+    volumes:
+      - ./.docker/volumes/matrixdata:/data
+    environment:
+      SYNAPSE_SERVER_NAME: "fogo"
+      SYNAPSE_REPORT_STATS: "no"
+    ports:
+      - "8008:8008"
+    depends_on:
+      - postgres
+    networks:
+      - baro-net
+
+  matrix_admin_ui:
+    image: awesometechnologies/synapse-admin
+    restart: always
+    ports:
+      - "8080:80"
+    depends_on:
+      - matrix
+
+networks:
+  baro-net:
+    driver: bridge
