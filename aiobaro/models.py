@@ -1,5 +1,17 @@
+import json
 from enum import Enum, unique
 from typing import Any, Dict, Union
+
+import httpx
+from httpx._models import (
+    ByteStream,
+    CookieTypes,
+    HeaderTypes,
+    QueryParamTypes,
+    RequestContent,
+    RequestData,
+    RequestFiles,
+)
 
 FilterT = Union[None, str, Dict[Any, Any]]
 
@@ -88,3 +100,29 @@ class PushRuleKind(str, Enum):
     room = "room"
     sender = "sender"
     underride = "underride"
+
+
+class MatrixResponse:
+    def __init__(self, response: httpx.Response):
+        self.response = response
+
+    def __repr__(self):
+        return self.response.__repr__()
+
+    @property
+    def ok(self):
+        try:
+            self.response.raise_for_status()
+        except httpx.HTTPStatusError:
+            return False
+        return True
+
+    @property
+    def status_code(self):
+        return self.response.status_code
+
+    def json(self):
+        return self.response.json()
+
+    def as_json(self):
+        return json.dumps(self.response.json(), indent=4)

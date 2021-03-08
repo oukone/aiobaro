@@ -8,6 +8,7 @@ authors = ["Sekou <sekou.omar.kone@gmail.com>"]
 python = "^3.8"
 httpx = "^0.17.0"
 typer = "^0.3.2"
+pydantic = "^1.8.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
@@ -16,6 +17,7 @@ black = "^20.8b1"
 flake8 = "^3.8.4"
 isort = "^5.7.0"
 pre-commit = "^2.10.1"
+pylint = "^2.7.2"
 
 
 [tool.black]
