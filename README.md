@@ -34,7 +34,10 @@ docker exec -it matrix register_new_matrix_user \
         -u admin -p ChangeMe --admin
 ```
 
-## Python setup
+[Matrix admin](http://localhost:8080/#/login)
+[Matrix OpenApi](https://matrix.org/docs/api/client-server/#/)
+
+### Python setup
 
 Use the package manager [poetry](https://python-poetry.org/)
 ```bash
@@ -42,7 +45,6 @@ git clone https://github.com/oukone/aiobaro.git && cd aiobaro
 poetry shell
 poetry install
 ```
-
 
 ## License
 [MIT](https://choosealicense.com/licenses/mit/)

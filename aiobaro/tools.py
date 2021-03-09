@@ -231,6 +231,7 @@ async def matrix_client(
     json: typing.Any = None,
     stream: ByteStream = None,
 ) -> httpx.Response:
+    """DOC:"""
     if access_token is not None:
         if isinstance(params, dict):
             params.setdefault("access_token", access_token)

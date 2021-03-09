@@ -39,7 +39,6 @@ class BaseMatrixClient:
         self.version = version
         self.homeserver = homeserver
         self.access_token = access_token
-        self._client = matrix_client
         self.client = functools.partial(
             matrix_client,
             self.client_path,
@@ -55,6 +54,16 @@ class BaseMatrixClient:
 
 
 class MatrixClient(BaseMatrixClient):
+    def __init__(
+        self,
+        homeserver: str,
+        access_token: str = None,
+        version: str = "r0",
+        client=matrix_client,
+    ):
+        self._client = matrix_client
+        super().__init__(homeserver, access_token, version, client)
+
     async def login_info(self) -> httpx.Response:
         """Get the homeserver's supported login types
 
@@ -301,9 +310,23 @@ class MatrixClient(BaseMatrixClient):
             event_id (str): The event id to get.
 
         * Matrix Spec
+        9.5.1   GET /_matrix/client/r0/rooms/{roomId}/event/{eventId}
+        params = {
+            "roomId": roomId,
+            "eventId": eventId
+        }
 
+        Rate-limited:   No.
+        Requires auth:  Yes.
         """
-        return httpx.Response(status_code=200, json={})
+        return await self.client(
+            "GET",
+            "sync",
+            params={
+                "room_id": room_id,
+                "event_id": event_id,
+            },
+        )
 
     async def room_put_state(
         self,
