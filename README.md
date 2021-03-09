@@ -34,8 +34,8 @@ docker exec -it matrix register_new_matrix_user \
         -u admin -p ChangeMe --admin
 ```
 
-[Matrix admin](http://localhost:8080/#/login)
-[Matrix OpenApi](https://matrix.org/docs/api/client-server/#/)
+* [Matrix admin](http://localhost:8080/#/login)
+* [Matrix OpenApi](https://matrix.org/docs/api/client-server/#/)
 
 ### Python setup
 
