@@ -18,6 +18,7 @@ from .models import (
     EventFormat,
     FilterT,
     HttpVerbs,
+    MatrixResponse,
     MessageDirection,
     PushRuleKind,
     ResizingMethod,
@@ -49,7 +50,7 @@ class BaseMatrixClient:
     def client_path(self):
         return f"{self.homeserver.strip('/')}/_matrix/client/{self.version}/"
 
-    async def __call__(self, *args, **kwargs):
+    async def __call__(self, *args, **kwargs) -> MatrixResponse:
         return await self.client(*args, **kwargs)
 
 
@@ -64,7 +65,7 @@ class MatrixClient(BaseMatrixClient):
         self._client = matrix_client
         super().__init__(homeserver, access_token, version, client)
 
-    async def login_info(self) -> httpx.Response:
+    async def login_info(self) -> MatrixResponse:
         """Get the homeserver's supported login types
 
         * Matrix Spec
@@ -80,7 +81,7 @@ class MatrixClient(BaseMatrixClient):
         password: str = None,
         device_name: Optional[str] = "",
         device_id: Optional[str] = "",
-    ) -> httpx.Response:
+    ) -> MatrixResponse:
         """Authenticate the user.
         Args:
             user (str): The fully qualified user ID or just local part of the
@@ -137,7 +138,7 @@ class MatrixClient(BaseMatrixClient):
         kind: UserKind = "user",
         device_name: Optional[str] = "",
         device_id: Optional[str] = "",
-    ) -> httpx.Response:
+    ) -> MatrixResponse:
         """Register a new user.
         Args:
             user (str): The fully qualified user ID or just local part of the
@@ -193,7 +194,7 @@ class MatrixClient(BaseMatrixClient):
             )
         return response
 
-    async def logout(self, all_devices: bool = True) -> httpx.Response:
+    async def logout(self, all_devices: bool = True) -> MatrixResponse:
         """Logout the session.
         Args:
             all_devices (bool): Logout all sessions from all devices if set to True.
@@ -217,7 +218,7 @@ class MatrixClient(BaseMatrixClient):
         data_filter: FilterT = None,
         full_state: Optional[bool] = None,
         set_presence: Optional[str] = None,
-    ) -> httpx.Response:
+    ) -> MatrixResponse:
         """Synchronise the client's state with the latest state on the server.
         Args:
             since (str): TA point in time to continue a sync from.
@@ -272,13 +273,13 @@ class MatrixClient(BaseMatrixClient):
             ),
         )
 
-    def room_send(
+    async def room_send(
         self,
         room_id: str,
         event_type: str,
         body: Dict[Any, Any],
         tx_id: Union[str, UUID],
-    ) -> httpx.Response:
+    ) -> MatrixResponse:
         """Send a message event to a room.
         Args:
             room_id (str): The room id of the room where the event will be sent
@@ -299,11 +300,11 @@ class MatrixClient(BaseMatrixClient):
         Rate-limited:   No.
         Requires auth:  Yes.
         """
-        return httpx.Response(status_code=200, json={})
+        return MatrixResponse(httpx.Response(status_code=404, json={}))
 
     async def room_get_event(
         self, room_id: str, event_id: str
-    ) -> httpx.Response:
+    ) -> MatrixResponse:
         """Get a single event based on roomId/eventId.
         Args:
             room_id (str): The room id of the room where the event is in.
@@ -334,7 +335,7 @@ class MatrixClient(BaseMatrixClient):
         event_type: str,
         body: Dict[Any, Any],
         state_key: str = "",
-    ) -> httpx.Response:
+    ) -> MatrixResponse:
         """Send a state event.
         Returns the HTTP method, HTTP path and data for the request.
         Args:
@@ -359,57 +360,57 @@ class MatrixClient(BaseMatrixClient):
         Rate-limited:   No.
         Requires auth:  Yes.
         """
-        return httpx.Response(status_code=200, json={})
+        return MatrixResponse(httpx.Response(status_code=404, json={}))
 
     async def room_get_state_event(
         self,
         room_id: str,
         event_event_type: str,
         state_key: str = "",
-    ) -> httpx.Response:
+    ) -> MatrixResponse:
         """Fetch a state event."""
-        return httpx.Response(status_code=200, json={})
+        return MatrixResponse(httpx.Response(status_code=404, json={}))
 
-    async def room_get_state(self, room_id: str) -> httpx.Response:
+    async def room_get_state(self, room_id: str) -> MatrixResponse:
         """Fetch the current state for a room."""
-        return httpx.Response(status_code=200, json={})
+        return MatrixResponse(httpx.Response(status_code=404, json={}))
 
-    def room_redact(
+    async def room_redact(
         self,
         room_id: str,
         event_id: str,
         tx_id: Union[str, UUID],
         reason: Optional[str] = None,
-    ) -> httpx.Response:
+    ) -> MatrixResponse:
         """Strip information out of an event."""
-        return httpx.Response(status_code=200, json={})
+        return MatrixResponse(httpx.Response(status_code=404, json={}))
 
     async def room_kick(
         self, room_id: str, user_id: str, reason: Optional[str] = None
-    ) -> httpx.Response:
+    ) -> MatrixResponse:
         """Kick a user from a room, or withdraw their invitation."""
-        return httpx.Response(status_code=200, json={})
+        return MatrixResponse(httpx.Response(status_code=404, json={}))
 
     async def room_ban(
         self,
         room_id: str,
         user_id: str,
         reason: Optional[str] = None,
-    ) -> httpx.Response:
+    ) -> MatrixResponse:
         """Ban a user from a room."""
-        return httpx.Response(status_code=200, json={})
+        return MatrixResponse(httpx.Response(status_code=404, json={}))
 
     async def room_unban(
         self,
         room_id: str,
         user_id: str,
-    ) -> httpx.Response:
+    ) -> MatrixResponse:
         """Unban a user from a room."""
-        return httpx.Response(status_code=200, json={})
+        return MatrixResponse(httpx.Response(status_code=404, json={}))
 
-    async def room_invite(self, room_id: str, user_id: str) -> httpx.Response:
+    async def room_invite(self, room_id: str, user_id: str) -> MatrixResponse:
         """Invite a user to a room."""
-        return httpx.Response(status_code=200, json={})
+        return MatrixResponse(httpx.Response(status_code=404, json={}))
 
     async def room_create(
         self,
@@ -424,36 +425,36 @@ class MatrixClient(BaseMatrixClient):
         invite: Sequence[str] = (),
         initial_state: Sequence[Dict[str, Any]] = (),
         power_level_override: Optional[Dict[str, Any]] = None,
-    ) -> httpx.Response:
+    ) -> MatrixResponse:
         """Create a new room."""
-        return httpx.Response(status_code=200, json={})
+        return MatrixResponse(httpx.Response(status_code=404, json={}))
 
-    async def join(self, room_id: str) -> httpx.Response:
+    async def join(self, room_id: str) -> MatrixResponse:
         """Join a room.
         Returns the HTTP method, HTTP path and data for the request.
         Args:
             access_token (str): The access token to be used with the request.
             room_id (str): The room identifier or alias to join.
         """
-        return httpx.Response(status_code=200, json={})
+        return MatrixResponse(httpx.Response(status_code=404, json={}))
 
-    async def room_leave(self, room_id: str) -> httpx.Response:
+    async def room_leave(self, room_id: str) -> MatrixResponse:
         """Leave a room.
         Returns the HTTP method, HTTP path and data for the request.
         Args:
             access_token (str): The access token to be used with the request.
             room_id (str): The room id of the room that will be left.
         """
-        return httpx.Response(status_code=200, json={})
+        return MatrixResponse(httpx.Response(status_code=404, json={}))
 
-    async def room_forget(self, room_id: str) -> httpx.Response:
+    async def room_forget(self, room_id: str) -> MatrixResponse:
         """Forget a room.
         Returns the HTTP method, HTTP path and data for the request.
         Args:
             access_token (str): The access token to be used with the request.
             room_id (str): The room id of the room that will be forgotten.
         """
-        return httpx.Response(status_code=200, json={})
+        return MatrixResponse(httpx.Response(status_code=404, json={}))
 
     async def room_messages(
         self,
@@ -463,7 +464,7 @@ class MatrixClient(BaseMatrixClient):
         direction: MessageDirection = MessageDirection.back,
         limit: int = 10,
         message_filter: Optional[Dict[Any, Any]] = None,
-    ) -> httpx.Response:
+    ) -> MatrixResponse:
         """Get room messages.
         Returns the HTTP method and HTTP path for the request.
         Args:
@@ -478,9 +479,9 @@ class MatrixClient(BaseMatrixClient):
                 A filter dict that should be used for this room messages
                 request.
         """
-        return httpx.Response(status_code=200, json={})
+        return MatrixResponse(httpx.Response(status_code=404, json={}))
 
-    async def keys_upload(self, key_dict: Dict[str, Any]) -> httpx.Response:
+    async def keys_upload(self, key_dict: Dict[str, Any]) -> MatrixResponse:
         """Publish end-to-end encryption keys.
         Returns the HTTP method, HTTP path and data for the request.
         Args:
@@ -488,11 +489,11 @@ class MatrixClient(BaseMatrixClient):
             key_dict (Dict): The dictionary containing device and one-time
                 keys that will be published to the server.
         """
-        return httpx.Response(status_code=200, json={})
+        return MatrixResponse(httpx.Response(status_code=404, json={}))
 
     async def keys_query(
         self, user_set: Iterable[str], token: Optional[str] = None
-    ) -> httpx.Response:
+    ) -> MatrixResponse:
         """Query the current devices and identity keys for the given users.
         Returns the HTTP method, HTTP path and data for the request.
         Args:
@@ -504,7 +505,7 @@ class MatrixClient(BaseMatrixClient):
                 the 'since' token of that sync request, or any later sync
                 token.
         """
-        return httpx.Response(status_code=200, json={})
+        return MatrixResponse(httpx.Response(status_code=404, json={}))
 
     async def keys_claim(self, user_set: Dict[str, Iterable[str]]):
         """Claim one-time keys for use in Olm pre-key messages.
@@ -515,14 +516,14 @@ class MatrixClient(BaseMatrixClient):
                 claim one-time keys to be claimed. A map from user ID, to a
                 list of device IDs.
         """
-        return httpx.Response(status_code=200, json={})
+        return MatrixResponse(httpx.Response(status_code=404, json={}))
 
     async def to_device(
         self,
         event_type: str,
         content: Dict[Any, Any],
         tx_id: Union[str, UUID],
-    ) -> httpx.Response:
+    ) -> MatrixResponse:
         """Send to-device events to a set of client devices.
         Returns the HTTP method, HTTP path and data for the request.
         Args:
@@ -533,19 +534,19 @@ class MatrixClient(BaseMatrixClient):
                 meaning all known devices for the user.
             tx_id (str): The transaction ID for this event.
         """
-        return httpx.Response(status_code=200, json={})
+        return MatrixResponse(httpx.Response(status_code=404, json={}))
 
-    async def devices(self) -> httpx.Response:
+    async def devices(self) -> MatrixResponse:
         """Get the list of devices for the current user.
         Returns the HTTP method and HTTP path for the request.
         Args:
             access_token (str): The access token to be used with the request.
         """
-        return httpx.Response(status_code=200, json={})
+        return MatrixResponse(httpx.Response(status_code=404, json={}))
 
     async def update_device(
         self, device_id: str, content: Dict[str, str]
-    ) -> httpx.Response:
+    ) -> MatrixResponse:
         """Update the metadata of the given device.
         Returns the HTTP method, HTTP path and data for the request.
         Args:
@@ -554,13 +555,13 @@ class MatrixClient(BaseMatrixClient):
             content (Dict): A dictionary of metadata values that will be
                 updated for the device.
         """
-        return httpx.Response(status_code=200, json={})
+        return MatrixResponse(httpx.Response(status_code=404, json={}))
 
     async def delete_devices(
         self,
         devices: List[str],
         auth_dict: Optional[Dict[str, str]] = None,
-    ) -> httpx.Response:
+    ) -> MatrixResponse:
         """Delete a device.
         This API endpoint uses the User-Interactive Authentication API.
         This tells the server to delete the given devices and invalidate their
@@ -573,32 +574,32 @@ class MatrixClient(BaseMatrixClient):
             auth_dict (Dict): Additional authentication information for
                 the user-interactive authentication API.
         """
-        return httpx.Response(status_code=200, json={})
+        return MatrixResponse(httpx.Response(status_code=404, json={}))
 
-    async def joined_members(self, room_id: str) -> httpx.Response:
+    async def joined_members(self, room_id: str) -> MatrixResponse:
         """Get the list of joined members for a room.
         Returns the HTTP method and HTTP path for the request.
         Args:
             access_token (str): The access token to be used with the request.
             room_id (str): Room id of the room where the user is typing.
         """
-        return httpx.Response(status_code=200, json={})
+        return MatrixResponse(httpx.Response(status_code=404, json={}))
 
-    async def joined_rooms(self) -> httpx.Response:
+    async def joined_rooms(self) -> MatrixResponse:
         """Get the list of joined rooms for the logged in account.
         Returns the HTTP method and HTTP path for the request.
         Args:
             access_token (str): The access token to be used with the request.
         """
-        return httpx.Response(status_code=200, json={})
+        return MatrixResponse(httpx.Response(status_code=404, json={}))
 
-    async def room_resolve_alias(self, room_alias: str) -> httpx.Response:
+    async def room_resolve_alias(self, room_alias: str) -> MatrixResponse:
         """Resolve a room alias to a room ID.
         Returns the HTTP method and HTTP path for the request.
         Args:
             room_alias (str): The alias to resolve
         """
-        return httpx.Response(status_code=200, json={})
+        return MatrixResponse(httpx.Response(status_code=404, json={}))
 
     async def room_typing(
         self,
@@ -606,7 +607,7 @@ class MatrixClient(BaseMatrixClient):
         user_id: str,
         typing_state: bool = True,
         timeout: int = 30000,
-    ) -> httpx.Response:
+    ) -> MatrixResponse:
         """Send a typing notice to the server.
         This tells the server that the user is typing for the next N
         milliseconds or that the user has stopped typing.
@@ -620,14 +621,14 @@ class MatrixClient(BaseMatrixClient):
             timeout (int): For how long should the new typing notice be
                 valid for in milliseconds.
         """
-        return httpx.Response(status_code=200, json={})
+        return MatrixResponse(httpx.Response(status_code=404, json={}))
 
     async def update_receipt_marker(
         self,
         room_id: str,
         event_id: str,
         receipt_type: str = "m.read",
-    ) -> httpx.Response:
+    ) -> MatrixResponse:
         """Update the marker of given `receipt_type` to specified `event_id`.
         Returns the HTTP method and HTTP path for the request.
         Args:
@@ -638,14 +639,14 @@ class MatrixClient(BaseMatrixClient):
             receipt_type (str): The type of receipt to send. Currently, only
                 `m.read` is supported by the Matrix specification.
         """
-        return httpx.Response(status_code=200, json={})
+        return MatrixResponse(httpx.Response(status_code=404, json={}))
 
     async def room_read_markers(
         self,
         room_id: str,
         fully_read_event: str,
         read_event: Optional[str] = None,
-    ) -> httpx.Response:
+    ) -> MatrixResponse:
         """Update fully read marker and optionally read marker for a room.
         This sets the position of the read marker for a given room,
         and optionally the read receipt's location.
@@ -659,20 +660,20 @@ class MatrixClient(BaseMatrixClient):
             read_event (Optional[str]): The event ID to set the read receipt
                 location at.
         """
-        return httpx.Response(status_code=200, json={})
+        return MatrixResponse(httpx.Response(status_code=404, json={}))
 
-    async def content_repository_config(self) -> httpx.Response:
+    async def content_repository_config(self) -> MatrixResponse:
         """Get the content repository configuration, such as upload limits.
         Returns the HTTP method and HTTP path for the request.
         Args:
             access_token (str): The access token to be used with the request.
         """
-        return httpx.Response(status_code=200, json={})
+        return MatrixResponse(httpx.Response(status_code=404, json={}))
 
     async def upload(
         self,
         filename: Optional[str] = None,
-    ) -> httpx.Response:
+    ) -> MatrixResponse:
         """Upload a file's content to the content repository.
         Returns the HTTP method, HTTP path and empty data for the request.
         The real data should be read from the file that should be uploaded.
@@ -682,7 +683,7 @@ class MatrixClient(BaseMatrixClient):
             access_token (str): The access token to be used with the request.
             filename (str): The name of the file being uploaded
         """
-        return httpx.Response(status_code=200, json={})
+        return MatrixResponse(httpx.Response(status_code=404, json={}))
 
     async def download(
         self,
@@ -690,7 +691,7 @@ class MatrixClient(BaseMatrixClient):
         media_id: str,
         filename: Optional[str] = None,
         allow_remote: bool = True,
-    ) -> httpx.Response:
+    ) -> MatrixResponse:
         """Get the content of a file from the content repository.
         Returns the HTTP method and HTTP path for the request.
         Args:
@@ -704,7 +705,7 @@ class MatrixClient(BaseMatrixClient):
                 This is to prevent routing loops where the server contacts
                 itself.
         """
-        return httpx.Response(status_code=200, json={})
+        return MatrixResponse(httpx.Response(status_code=404, json={}))
 
     async def thumbnail(
         self,
@@ -714,7 +715,7 @@ class MatrixClient(BaseMatrixClient):
         height: int,
         method: ResizingMethod = ResizingMethod.scale,
         allow_remote: bool = True,
-    ) -> httpx.Response:
+    ) -> MatrixResponse:
         """Get the thumbnail of a file from the content repository.
         Returns the HTTP method and HTTP path for the request.
         Note: The actual thumbnail may be larger than the size specified.
@@ -729,9 +730,9 @@ class MatrixClient(BaseMatrixClient):
                 This is to prevent routing loops where the server contacts
                 itself.
         """
-        return httpx.Response(status_code=200, json={})
+        return MatrixResponse(httpx.Response(status_code=404, json={}))
 
-    async def profile_get(self, user_id: str) -> httpx.Response:
+    async def profile_get(self, user_id: str) -> MatrixResponse:
         """Get the combined profile information for a user.
         Returns the HTTP method and HTTP path for the request.
         Args:
@@ -739,9 +740,9 @@ class MatrixClient(BaseMatrixClient):
             access_token (str): The access token to be used with the request. If
                                 omitted, an unauthenticated request is perfomed.
         """
-        return httpx.Response(status_code=200, json={})
+        return MatrixResponse(httpx.Response(status_code=404, json={}))
 
-    async def profile_get_displayname(self, user_id: str) -> httpx.Response:
+    async def profile_get_displayname(self, user_id: str) -> MatrixResponse:
         # type (str, str) -> Tuple[str, str]
         """Get display name.
         Returns the HTTP method and HTTP path for the request.
@@ -750,11 +751,11 @@ class MatrixClient(BaseMatrixClient):
             access_token (str): The access token to be used with the request. If
                                 omitted, an unauthenticated request is perfomed.
         """
-        return httpx.Response(status_code=200, json={})
+        return MatrixResponse(httpx.Response(status_code=404, json={}))
 
     async def profile_set_displayname(
         self, user_id: str, display_name: str
-    ) -> httpx.Response:
+    ) -> MatrixResponse:
         """Set display name.
         Returns the HTTP method, HTTP path and data for the request.
         Args:
@@ -762,9 +763,9 @@ class MatrixClient(BaseMatrixClient):
             user_id (str): User id to set display name for.
             display_name (str): Display name for user to set.
         """
-        return httpx.Response(status_code=200, json={})
+        return MatrixResponse(httpx.Response(status_code=404, json={}))
 
-    async def profile_get_avatar(self, user_id: str) -> httpx.Response:
+    async def profile_get_avatar(self, user_id: str) -> MatrixResponse:
         """Get avatar URL.
         Returns the HTTP method and HTTP path for the request.
         Args:
@@ -772,11 +773,11 @@ class MatrixClient(BaseMatrixClient):
             access_token (str): The access token to be used with the request. If
                                 omitted, an unauthenticated request is perfomed.
         """
-        return httpx.Response(status_code=200, json={})
+        return MatrixResponse(httpx.Response(status_code=404, json={}))
 
     async def profile_set_avatar(
         self, user_id: str, avatar_url: str
-    ) -> httpx.Response:
+    ) -> MatrixResponse:
         # type (str, str, str) -> Tuple[str, str, str]
         """Set avatar url.
         Returns the HTTP method, HTTP path and data for the request.
@@ -785,20 +786,20 @@ class MatrixClient(BaseMatrixClient):
             user_id (str): User id to set display name for.
             avatar_url (str): matrix content URI of the avatar to set.
         """
-        return httpx.Response(status_code=200, json={})
+        return MatrixResponse(httpx.Response(status_code=404, json={}))
 
-    async def get_presence(self: str, user_id: str) -> httpx.Response:
+    async def get_presence(self: str, user_id: str) -> MatrixResponse:
         """Get the given user's presence state.
         Returns the HTTP method and HTTP path for the request.
         Args:
             access_token (str): The access token to be used with the request.
             user_id (str): User id whose presence state to get.
         """
-        return httpx.Response(status_code=200, json={})
+        return MatrixResponse(httpx.Response(status_code=404, json={}))
 
     async def set_presence(
         self, user_id: str, presence: str, status_msg: str = None
-    ) -> httpx.Response:
+    ) -> MatrixResponse:
         """This API sets the given user's presence state.
         Returns the HTTP method, HTTP path and data for the request.
         Args:
@@ -807,19 +808,19 @@ class MatrixClient(BaseMatrixClient):
             presence (str): The new presence state.
             status_msg (str, optional): The status message to attach to this state.
         """
-        return httpx.Response(status_code=200, json={})
+        return MatrixResponse(httpx.Response(status_code=404, json={}))
 
-    async def whoami(self) -> httpx.Response:
+    async def whoami(self) -> MatrixResponse:
         """Get information about the owner of a given access token.
         Returns the HTTP method, HTTP path and data for the request.
         Args:
             access_token (str): The access token to be used with the request.
         """
-        return httpx.Response(status_code=200, json={})
+        return MatrixResponse(httpx.Response(status_code=404, json={}))
 
     async def room_context(
         self, room_id: str, event_id: str, limit: Optional[str] = None
-    ) -> httpx.Response:
+    ) -> MatrixResponse:
         """Fetch a number of events that happened before and after an event.
         This allows clients to get the context surrounding an event.
         Returns the HTTP method, HTTP path and data for the request.
@@ -831,7 +832,7 @@ class MatrixClient(BaseMatrixClient):
                 context for.
             limit(int, optional): The maximum number of events to request.
         """
-        return httpx.Response(status_code=200, json={})
+        return MatrixResponse(httpx.Response(status_code=404, json={}))
 
     async def upload_filter(
         self,
@@ -841,7 +842,7 @@ class MatrixClient(BaseMatrixClient):
         presence: Optional[Dict[str, Any]] = None,
         account_data: Optional[Dict[str, Any]] = None,
         room: Optional[Dict[str, Any]] = None,
-    ) -> httpx.Response:
+    ) -> MatrixResponse:
         """Upload a new filter definition to the homeserver.
         Returns the HTTP method, HTTP path and data for the request.
         Args:
@@ -864,7 +865,7 @@ class MatrixClient(BaseMatrixClient):
                 The dict corresponds to the `RoomFilter` type described
                 in https://matrix.org/docs/spec/client_server/latest#id240
         """
-        return httpx.Response(status_code=200, json={})
+        return MatrixResponse(httpx.Response(status_code=404, json={}))
 
     # async def set_pushrule(
     #     self,
@@ -876,7 +877,7 @@ class MatrixClient(BaseMatrixClient):
     #     actions: Sequence["PushAction"] = (),
     #     conditions: Optional[Sequence["PushCondition"]] = None,
     #     pattern: Optional[str] = None,
-    # ) -> httpx.Response:
+    # ) -> MatrixResponse:
     #     """Create or modify an existing user-created push rule.
     #     Returns the HTTP method, HTTP path and data for the request.
     #     Args:
@@ -909,14 +910,14 @@ class MatrixClient(BaseMatrixClient):
     #             for the event's content.
     #             Only applicable to ``content`` rules.
     #     """
-    #     return httpx.Response(status_code=200, json={})
+    #     return MatrixResponse(httpx.Response(status_code=404, json={}))
 
     # async def delete_pushrule(
     #     self,
     #     scope: str,
     #     kind: PushRuleKind,
     #     rule_id: str,
-    # ) -> httpx.Response:
+    # ) -> MatrixResponse:
     #     """Delete an existing user-created push rule.
     #     Returns the HTTP method and HTTP path for the request.
     #     Args:
@@ -926,7 +927,7 @@ class MatrixClient(BaseMatrixClient):
     #         rule_id (str): The identifier of the rule. Must be unique
     #             within its scope and kind.
     #     """
-    #     return httpx.Response(status_code=200, json={})
+    #     return MatrixResponse(httpx.Response(status_code=404, json={}))
 
     # async def enable_pushrule(
     #     self,
@@ -934,7 +935,7 @@ class MatrixClient(BaseMatrixClient):
     #     kind: PushRuleKind,
     #     rule_id: str,
     #     enable: bool,
-    # ) -> httpx.Response:
+    # ) -> MatrixResponse:
     #     """Enable or disable an existing built-in or user-created push rule.
     #     Returns the HTTP method, HTTP path and data for the request.
     #     Args:
@@ -945,7 +946,7 @@ class MatrixClient(BaseMatrixClient):
     #             within its scope and kind.
     #         enable (bool): Whether to enable or disable the rule.
     #     """
-    #     return httpx.Response(status_code=200, json={})
+    #     return MatrixResponse(httpx.Response(status_code=404, json={}))
 
     # async def set_pushrule_actions(
     #     self,
@@ -953,7 +954,7 @@ class MatrixClient(BaseMatrixClient):
     #     kind: PushRuleKind,
     #     rule_id: str,
     #     actions: Sequence["PushAction"],
-    # ) -> httpx.Response:
+    # ) -> MatrixResponse:
     #     """Set the actions for an existing built-in or user-created push rule.
     #     Unlike ``set_pushrule``, this method can edit built-in server rules.
     #     Returns the HTTP method, HTTP path and data for the request.
@@ -967,4 +968,4 @@ class MatrixClient(BaseMatrixClient):
     #             conditions for this rule are met. The given actions replace
     #             the existing ones.
     #     """
-    #     return httpx.Response(status_code=200, json={})
+    #     return MatrixResponse(httpx.Response(status_code=404, json={}))
