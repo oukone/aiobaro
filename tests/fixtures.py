@@ -8,8 +8,10 @@ from .utils import is_responsive
 
 
 @pytest.fixture(scope="session")
-def docker_consose_file(pytestconfig):
-    return pathlib.Path(pytestconfig.rootdir) / "docker-compose.yml"
+def docker_compose_file(pytestconfig):
+    return (
+        pathlib.Path(pytestconfig.rootdir) / "tests/docker/docker-compose.yml"
+    )
 
 
 @pytest.fixture(scope="session")
@@ -27,6 +29,6 @@ def matrix_server_url(docker_ip, docker_services) -> str:
     return url
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def matrix_client(matrix_server_url):
     return MatrixClient(matrix_server_url)

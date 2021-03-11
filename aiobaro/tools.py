@@ -216,6 +216,46 @@ def request_registration(
     return requests.post(url, json=data, verify=False)
 
 
+def auth_required(method):
+    async def inner(
+        self,
+        verb: HttpVerbs,
+        path: str,
+        params: QueryParamTypes = None,
+        headers: HeaderTypes = None,
+        cookies: CookieTypes = None,
+        content: RequestContent = None,
+        data: RequestData = None,
+        files: RequestFiles = None,
+        json: typing.Any = None,
+        stream: ByteStream = None,
+    ):
+        if isinstance(params, dict):
+            params.setdefault("access_token", self.access_token)
+        else:
+            params = dict(access_token=self.access_token)
+
+        if not params["access_token"]:
+            raise LoginRequiredException(
+                status_code=401, message="Invalid access_token"
+            )
+        return await method(
+            self,
+            verb,
+            path,
+            params=params,
+            headers=headers,
+            cookies=cookies,
+            content=content,
+            data=data,
+            files=files,
+            json=json,
+            stream=stream,
+        )
+
+    return inner
+
+
 async def matrix_client(
     homeserver: str,
     verb: HttpVerbs,
@@ -237,7 +277,6 @@ async def matrix_client(
             params.setdefault("access_token", access_token)
         else:
             params = dict(access_token=access_token)
-
     async with httpx.AsyncClient() as client:
         client_config = {
             "params": params,

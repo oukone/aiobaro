@@ -1,0 +1,17 @@
+version: "3.3"
+
+services:
+  matrix:
+    # docker-compose run --rm matrix generate
+    # docker exec -it matrix register_new_matrix_user \
+    #          http://localhost:8008 -c /data/homeserver.yaml -u fogo -p ChangeMe --admin
+    image: matrixdotorg/synapse
+    container_name: matrix-test
+    restart: always
+    volumes:
+      - ./volumes/matrixdata:/data
+    environment:
+      SYNAPSE_SERVER_NAME: "baro"
+      SYNAPSE_REPORT_STATS: "no"
+    ports:
+      - "9988:8008"

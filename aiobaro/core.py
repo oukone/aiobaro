@@ -26,25 +26,62 @@ from .models import (
     RoomVisibility,
     UserKind,
 )
-from .tools import matrix_client
+from .tools import auth_required, jsonable_encoder
 
 
 class BaseMatrixClient:
     def __init__(
-        self,
-        homeserver: str,
-        access_token: str = None,
-        version: str = "r0",
-        client=matrix_client,
+        self, homeserver: str, access_token: str = None, version: str = "r0"
     ):
         self.version = version
         self.homeserver = homeserver
         self.access_token = access_token
-        self.client = functools.partial(
-            matrix_client,
-            self.client_path,
-            access_token=self.access_token,
-        )
+
+    async def client(
+        self,
+        verb: HttpVerbs,
+        path: str,
+        *,
+        access_token: str = None,
+        params: QueryParamTypes = None,
+        headers: HeaderTypes = None,
+        cookies: CookieTypes = None,
+        content: RequestContent = None,
+        data: RequestData = None,
+        files: RequestFiles = None,
+        json: Any = None,
+        stream: ByteStream = None,
+    ) -> MatrixResponse:
+        """DOC:"""
+        if access_token is not None:
+            if isinstance(params, dict):
+                params.setdefault("access_token", access_token)
+            else:
+                params = dict(access_token=access_token)
+        async with httpx.AsyncClient() as client:
+            client_config = {
+                "params": params,
+                "headers": headers,
+                "cookies": cookies,
+                "content": content,
+                "data": data,
+                "files": files,
+                "json": jsonable_encoder(json)
+                if isinstance(json, (dict, list))
+                else json,
+                "stream": stream,
+            }
+            request = httpx.Request(
+                verb.upper(),
+                f"{self.client_path.strip('/')}/{path.lstrip('/')}",
+                **dict(filter(lambda x: x[1], client_config.items())),
+            )
+            response: httpx.Response = await client.send(request)
+        return MatrixResponse(response)
+
+    @auth_required
+    async def auth_client(self, *args, **kwargs):
+        return await self.client(*args, **kwargs)
 
     @property
     def client_path(self):
@@ -55,16 +92,6 @@ class BaseMatrixClient:
 
 
 class MatrixClient(BaseMatrixClient):
-    def __init__(
-        self,
-        homeserver: str,
-        access_token: str = None,
-        version: str = "r0",
-        client=matrix_client,
-    ):
-        self._client = matrix_client
-        super().__init__(homeserver, access_token, version, client)
-
     async def login_info(self) -> MatrixResponse:
         """Get the homeserver's supported login types
 
@@ -124,11 +151,6 @@ class MatrixClient(BaseMatrixClient):
         )
         if response.ok:
             self.access_token = response.json()["access_token"]
-            self.client = functools.partial(
-                self._client,
-                self.client_path,
-                access_token=self.access_token,
-            )
         return response
 
     async def register(
@@ -187,11 +209,6 @@ class MatrixClient(BaseMatrixClient):
         )
         if response.ok:
             self.access_token = response.json()["access_token"]
-            self.client = functools.partial(
-                self._client,
-                self.client_path,
-                access_token=self.access_token,
-            )
         return response
 
     async def logout(self, all_devices: bool = True) -> MatrixResponse:
@@ -205,7 +222,7 @@ class MatrixClient(BaseMatrixClient):
         Content-Type: application/json
         body = {}
         """
-        return await self.client(
+        return await self.auth_client(
             "POST",
             "logout/all" if all_devices else "logout",
             json={},
@@ -252,7 +269,7 @@ class MatrixClient(BaseMatrixClient):
         Rate-limited:   No.
         Requires auth:  Yes.
         """
-        return await self.client(
+        return await self.auth_client(
             "GET",
             "sync",
             params=dict(
@@ -320,9 +337,9 @@ class MatrixClient(BaseMatrixClient):
         Rate-limited:   No.
         Requires auth:  Yes.
         """
-        return await self.client(
+        return await self.auth_client(
             "GET",
-            "sync",
+            "rooms/{room_id}/event/{event_id}",
             params={
                 "room_id": room_id,
                 "event_id": event_id,

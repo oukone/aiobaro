@@ -1,3 +1,7 @@
+import uuid
+
+import pytest
+
 from aiobaro import __version__
 
 
@@ -5,45 +9,68 @@ def test_version():
     assert __version__ == "0.1.0"
 
 
+@pytest.mark.asyncio
 async def test_login_info(matrix_client):
-    args, kwargs = [], {}
-    result = await matrix_client.login_info(*args, **kwargs)
+    result = await matrix_client.login_info()
     assert result.ok
 
 
-async def test_login(matrix_client):
-    args, kwargs = [], {}
-    result = await matrix_client.login(*args, **kwargs)
-    assert result.ok
-
-
+@pytest.mark.asyncio
 async def test_register(matrix_client):
-    args, kwargs = [], {}
-    result = await matrix_client.register(*args, **kwargs)
+    result = await matrix_client.register(
+        "test_user", password="test_password"
+    )
     assert result.ok
 
 
-async def test_logout(matrix_client):
-    args, kwargs = [], {}
-    result = await matrix_client.logout(*args, **kwargs)
+@pytest.mark.asyncio
+async def test_login(matrix_client):
+    result = await matrix_client.login("test_user", password="test_password")
     assert result.ok
 
 
+async def test_room_create(matrix_client):
+    args, kwargs = [], {}
+    result = await matrix_client.room_create(*args, **kwargs)
+    assert result.ok
+
+
+@pytest.mark.asyncio
 async def test_sync(matrix_client):
-    args, kwargs = [], {}
-    result = await matrix_client.sync(*args, **kwargs)
+    since = None
+    timeout = None
+    data_filter = None
+    full_state = None
+    set_presence = None
+    result = await matrix_client.sync(
+        since=since,
+        timeout=timeout,
+        data_filter=data_filter,
+        full_state=full_state,
+        set_presence=set_presence,
+    )
     assert result.ok
 
 
+@pytest.mark.asyncio
 async def test_room_send(matrix_client):
-    args, kwargs = [], {}
-    result = await matrix_client.room_send(*args, **kwargs)
+    room_id = None
+    event_type = None
+    body = None
+    tx_id = None
+    result = await matrix_client.room_send(
+        room_id,
+        event_type,
+        body,
+        tx_id,
+    )
     assert result.ok
 
 
+@pytest.mark.asyncio
 async def test_room_get_event(matrix_client):
-    args, kwargs = [], {}
-    result = await matrix_client.room_get_event(*args, **kwargs)
+    room_id, event_id = None, None
+    result = await matrix_client.room_get_event(room_id, event_id)
     assert result.ok
 
 
@@ -92,12 +119,6 @@ async def test_room_unban(matrix_client):
 async def test_room_invite(matrix_client):
     args, kwargs = [], {}
     result = await matrix_client.room_invite(*args, **kwargs)
-    assert result.ok
-
-
-async def test_room_create(matrix_client):
-    args, kwargs = [], {}
-    result = await matrix_client.room_create(*args, **kwargs)
     assert result.ok
 
 
@@ -308,4 +329,10 @@ async def test_enable_pushrule(matrix_client):
 async def test_set_pushrule_actions(matrix_client):
     args, kwargs = [], {}
     result = await matrix_client.set_pushrule_actions(*args, **kwargs)
+    assert result.ok
+
+
+@pytest.mark.asyncio
+async def test_logout(matrix_client):
+    result = await matrix_client.logout()
     assert result.ok
