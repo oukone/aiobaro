@@ -42,6 +42,7 @@ docker exec -it matrix register_new_matrix_user \
 Use the package manager [poetry](https://python-poetry.org/)
 ```bash
 git clone https://github.com/oukone/aiobaro.git && cd aiobaro
+poetry config virtualenvs.in-project true
 poetry shell
 poetry install
 ```
