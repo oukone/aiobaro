@@ -1,6 +1,6 @@
 # aiobaro
 
-Foobar is a Python library for dealing with word pluralization.
+Aiobaro is a Python client implementation for communicating with Matrix.
 
 ## Installation
 
