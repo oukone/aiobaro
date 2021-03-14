@@ -58,6 +58,7 @@ async def test_room_create(matrix_client):
         power_level_override=power_level_override,
     )
     assert result.ok
+    assert result.json().get("room_id")
 
 
 @pytest.mark.asyncio
