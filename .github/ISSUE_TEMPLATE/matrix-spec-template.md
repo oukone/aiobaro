@@ -25,5 +25,5 @@ Content-Type: application/json
 }
 ```
 
-Rate-limited:	No.
-Requires auth:	Yes.
+Rate-limited:	No.  
+Requires auth:	Yes.  
