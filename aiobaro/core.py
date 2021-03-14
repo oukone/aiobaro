@@ -923,19 +923,26 @@ class MatrixClient(BaseMatrixClient):
             user_id (str): User id to get the profile for.
 
         * Matrix Spec
+        GET /_matrix/client/r0/profile/{userId} HTTP/1.1
+
+        Rate-limited:   No.
+        Requires auth:  No.
         """
-        return MatrixResponse(httpx.Response(status_code=404, json={}))
+        return await self.client("GET", f"profile/{user_id}")
 
     async def profile_get_displayname(self, user_id: str) -> MatrixResponse:
-        # type (str, str) -> Tuple[str, str]
         """Get display name.
         Returns the HTTP method and HTTP path for the request.
         Args:
             user_id (str): User id to get display name for.
 
         * Matrix Spec
+        11.2.2   GET /_matrix/client/r0/profile/{userId}/displayname
+
+        Rate-limited:   No.
+        Requires auth:  No.
         """
-        return MatrixResponse(httpx.Response(status_code=404, json={}))
+        return await self.client("GET", f"profile/{user_id}/displayname")
 
     async def profile_set_displayname(
         self, user_id: str, display_name: str
@@ -947,8 +954,16 @@ class MatrixClient(BaseMatrixClient):
             display_name (str): Display name for user to set.
 
         * Matrix Spec
+        11.2.1   PUT /_matrix/client/r0/profile/{userId}/displayname
+
+        Rate-limited:   No.
+        Requires auth:  No.
         """
-        return MatrixResponse(httpx.Response(status_code=404, json={}))
+        return await self.auth_client(
+            "PUT",
+            f"profile/{user_id}/displayname",
+            json={"displayname": display_name},
+        )
 
     async def profile_get_avatar(self, user_id: str) -> MatrixResponse:
         """Get avatar URL.
@@ -957,13 +972,16 @@ class MatrixClient(BaseMatrixClient):
             user_id (str): User id to get avatar for.
 
         * Matrix Spec
+        11.2.4   GET /_matrix/client/r0/profile/{userId}/avatar_url
+
+        Rate-limited:	No.
+        Requires auth:	No.
         """
-        return MatrixResponse(httpx.Response(status_code=404, json={}))
+        return await self.client("GET", f"profile/{user_id}/avatar_url")
 
     async def profile_set_avatar(
         self, user_id: str, avatar_url: str
     ) -> MatrixResponse:
-        # type (str, str, str) -> Tuple[str, str, str]
         """Set avatar url.
         Returns the HTTP method, HTTP path and data for the request.
         Args:
@@ -971,8 +989,16 @@ class MatrixClient(BaseMatrixClient):
             avatar_url (str): matrix content URI of the avatar to set.
 
         * Matrix Spec
+        11.2.3   PUT /_matrix/client/r0/profile/{userId}/avatar_url
+
+        Rate-limited:	Yes.
+        Requires auth:	Yes.
         """
-        return MatrixResponse(httpx.Response(status_code=404, json={}))
+        return await self.auth_client(
+            "PUT",
+            f"profile/{user_id}/avatar_url",
+            json={"avatar_url": avatar_url},
+        )
 
     async def get_presence(self: str, user_id: str) -> MatrixResponse:
         """Get the given user's presence state.
