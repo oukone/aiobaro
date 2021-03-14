@@ -29,9 +29,34 @@ async def test_login(matrix_client):
     assert result.ok
 
 
+@pytest.mark.asyncio
 async def test_room_create(matrix_client):
-    args, kwargs = [], {}
-    result = await matrix_client.room_create(*args, **kwargs)
+    await test_register(matrix_client)
+    await test_login(matrix_client)
+
+    room_alias_name = None
+    name = "Room"
+    topic = None
+    room_version = None
+    federate = True
+    is_direct = False
+    preset = None
+    invite = None
+    initial_state = None
+    power_level_override = None
+
+    result = await matrix_client.room_create(
+        name=name,
+        room_alias_name=room_alias_name,
+        topic=topic,
+        room_version=room_version,
+        federate=federate,
+        is_direct=is_direct,
+        preset=preset,
+        invite=invite,
+        initial_state=initial_state,
+        power_level_override=power_level_override,
+    )
     assert result.ok
 
 
