@@ -317,7 +317,11 @@ class MatrixClient(BaseMatrixClient):
         Rate-limited:   No.
         Requires auth:  Yes.
         """
-        return MatrixResponse(httpx.Response(status_code=404, json={}))
+        return await self.auth_client(
+            "PUT",
+            f"rooms/{room_id}/send/{event_type}/{tx_id}",
+            json=body,
+        )
 
     async def room_get_event(
         self, room_id: str, event_id: str
@@ -377,7 +381,11 @@ class MatrixClient(BaseMatrixClient):
         Rate-limited:   No.
         Requires auth:  Yes.
         """
-        return MatrixResponse(httpx.Response(status_code=404, json={}))
+        return await self.auth_client(
+            "PUT",
+            f"rooms/{room_id}/state/{event_type}/{state_key}",
+            json=body,
+        )
 
     async def room_get_state_event(
         self,
@@ -385,11 +393,26 @@ class MatrixClient(BaseMatrixClient):
         event_event_type: str,
         state_key: str = "",
     ) -> MatrixResponse:
-        """Fetch a state event."""
+        """Fetch a state event.
+        Returns the HTTP method and HTTP path for the request.
+        Args:
+            room_id (str): The room id of the room where the state is fetched
+                from.
+            event_type (str): The type of the event that will be fetched.
+            state_key: The key of the state to look up. Defaults to an empty
+                string.
+        """
         return MatrixResponse(httpx.Response(status_code=404, json={}))
 
     async def room_get_state(self, room_id: str) -> MatrixResponse:
-        """Fetch the current state for a room."""
+        """Fetch the current state for a room.
+        Returns the HTTP method and HTTP path for the request.
+        Args:
+            room_id (str): The room id of the room where the state is fetched
+                from.
+
+        * Matrix Spec
+        """
         return MatrixResponse(httpx.Response(status_code=404, json={}))
 
     async def room_redact(
@@ -399,13 +422,33 @@ class MatrixClient(BaseMatrixClient):
         tx_id: Union[str, UUID],
         reason: Optional[str] = None,
     ) -> MatrixResponse:
-        """Strip information out of an event."""
+        """Strip information out of an event.
+        Returns the HTTP method, HTTP path and data for the request.
+        Args:
+            room_id (str): The room id of the room that contains the event that
+                will be redacted.
+            event_id (str): The ID of the event that will be redacted.
+            tx_id (str/UUID, optional): A transaction ID for this event.
+            reason(str, optional): A description explaining why the
+                event was redacted.
+
+        * Matrix Spec
+        """
         return MatrixResponse(httpx.Response(status_code=404, json={}))
 
     async def room_kick(
         self, room_id: str, user_id: str, reason: Optional[str] = None
     ) -> MatrixResponse:
-        """Kick a user from a room, or withdraw their invitation."""
+        """Kick a user from a room, or withdraw their invitation.
+        Returns the HTTP method, HTTP path and data for the request.
+        Args:
+            room_id (str): The room id of the room that the user will be
+                kicked from.
+            user_id (str): The user_id of the user that should be kicked.
+            reason (str, optional): A reason for which the user is kicked.
+
+        * Matrix Spec
+        """
         return MatrixResponse(httpx.Response(status_code=404, json={}))
 
     async def room_ban(
@@ -414,7 +457,16 @@ class MatrixClient(BaseMatrixClient):
         user_id: str,
         reason: Optional[str] = None,
     ) -> MatrixResponse:
-        """Ban a user from a room."""
+        """Ban a user from a room.
+        Returns the HTTP method, HTTP path and data for the request.
+        Args:
+            room_id (str): The room id of the room that the user will be
+                banned from.
+            user_id (str): The user_id of the user that should be banned.
+            reason (str, optional): A reason for which the user is banned.
+
+        * Matrix Spec
+        """
         return MatrixResponse(httpx.Response(status_code=404, json={}))
 
     async def room_unban(
@@ -422,11 +474,27 @@ class MatrixClient(BaseMatrixClient):
         room_id: str,
         user_id: str,
     ) -> MatrixResponse:
-        """Unban a user from a room."""
+        """Unban a user from a room.
+        Returns the HTTP method, HTTP path and data for the request.
+        Args:
+            room_id (str): The room id of the room that the user will be
+                unbanned from.
+            user_id (str): The user_id of the user that should be unbanned.
+
+        * Matrix Spec
+        """
         return MatrixResponse(httpx.Response(status_code=404, json={}))
 
     async def room_invite(self, room_id: str, user_id: str) -> MatrixResponse:
-        """Invite a user to a room."""
+        """Invite a user to a room.
+        Returns the HTTP method, HTTP path and data for the request.
+        Args:
+            room_id (str): The room id of the room that the user will be
+                invited to.
+            user_id (str): The user id of the user that should be invited.
+
+        * Matrix Spec
+        """
         return MatrixResponse(httpx.Response(status_code=404, json={}))
 
     async def room_create(
@@ -444,7 +512,62 @@ class MatrixClient(BaseMatrixClient):
         power_level_override: Optional[Dict[str, Any]] = None,
     ) -> MatrixResponse:
         """Create a new room.
-        10.1.1   POST /_matrix/client/r0/createRoom
+        Args:
+            visibility (RoomVisibility): whether to have the room published in
+                the server's room directory or not.
+                Defaults to ``RoomVisibility.private``.
+            room_alias_name (str, optional): The desired canonical alias local part.
+                For example, if set to "foo" and the room is created on the
+                "example.com" server, the room alias will be
+                "#foo:example.com".
+            name (str, optional): A name to set for the room.
+            topic (str, optional): A topic to set for the room.
+            room_version (str, optional): The room version to set.
+                If not specified, the homeserver will use its default setting.
+                If a version not supported by the homeserver is specified,
+                a 400 ``M_UNSUPPORTED_ROOM_VERSION`` error will be returned.
+            federate (bool): Whether to allow users from other homeservers from
+                joining the room. Defaults to ``True``.
+                Cannot be changed later.
+            is_direct (bool): If this should be considered a
+                direct messaging room.
+                If ``True``, the server will set the ``is_direct`` flag on
+                ``m.room.member events`` sent to the users in ``invite``.
+                Defaults to ``False``.
+            preset (RoomPreset, optional): The selected preset will set various
+                rules for the room.
+                If unspecified, the server will choose a preset from the
+                ``visibility``: ``RoomVisibility.public`` equates to
+                ``RoomPreset.public_chat``, and
+                ``RoomVisibility.private`` equates to a
+                ``RoomPreset.private_chat``.
+            invite (list): A list of user id to invite to the room.
+            initial_state (list): A list of state event dicts to send when
+                the room is created.
+                For example, a room could be made encrypted immediatly by
+                having a ``m.room.encryption`` event dict.
+            power_level_override (dict): A ``m.room.power_levels content`` dict
+                to override the default.
+                The dict will be applied on top of the generated
+                ``m.room.power_levels`` event before it is sent to the room.
+
+        * Matrix Spec
+
+        POST    /_matrix/client/r0/createRoom
+        Content-Type:   application/json
+
+        {
+            "preset": "public_chat",
+            "room_alias_name": "thepub",
+            "name": "The Grand Duke Pub",
+            "topic": "All about happy hour",
+            "creation_content": {
+                "m.federate": false
+            }
+        }
+
+        Rate-limited:   No.
+        Requires auth:  Yes.
         """
 
         return await self.auth_client(
@@ -474,8 +597,9 @@ class MatrixClient(BaseMatrixClient):
         """Join a room.
         Returns the HTTP method, HTTP path and data for the request.
         Args:
-            access_token (str): The access token to be used with the request.
             room_id (str): The room identifier or alias to join.
+
+        * Matrix Spec
         """
         return MatrixResponse(httpx.Response(status_code=404, json={}))
 
@@ -483,8 +607,9 @@ class MatrixClient(BaseMatrixClient):
         """Leave a room.
         Returns the HTTP method, HTTP path and data for the request.
         Args:
-            access_token (str): The access token to be used with the request.
             room_id (str): The room id of the room that will be left.
+
+        * Matrix Spec
         """
         return MatrixResponse(httpx.Response(status_code=404, json={}))
 
@@ -492,8 +617,9 @@ class MatrixClient(BaseMatrixClient):
         """Forget a room.
         Returns the HTTP method, HTTP path and data for the request.
         Args:
-            access_token (str): The access token to be used with the request.
             room_id (str): The room id of the room that will be forgotten.
+
+        * Matrix Spec
         """
         return MatrixResponse(httpx.Response(status_code=404, json={}))
 
@@ -509,7 +635,6 @@ class MatrixClient(BaseMatrixClient):
         """Get room messages.
         Returns the HTTP method and HTTP path for the request.
         Args:
-            access_token (str): The access token to be used with the request.
             room_id (str): room id of the room for which to download the
                 messages
             start (str): The token to start returning events from.
@@ -519,6 +644,8 @@ class MatrixClient(BaseMatrixClient):
             message_filter (Optional[Dict[Any, Any]]):
                 A filter dict that should be used for this room messages
                 request.
+
+        * Matrix Spec
         """
         return MatrixResponse(httpx.Response(status_code=404, json={}))
 
@@ -526,9 +653,10 @@ class MatrixClient(BaseMatrixClient):
         """Publish end-to-end encryption keys.
         Returns the HTTP method, HTTP path and data for the request.
         Args:
-            access_token (str): The access token to be used with the request.
             key_dict (Dict): The dictionary containing device and one-time
                 keys that will be published to the server.
+
+        * Matrix Spec
         """
         return MatrixResponse(httpx.Response(status_code=404, json={}))
 
@@ -538,13 +666,14 @@ class MatrixClient(BaseMatrixClient):
         """Query the current devices and identity keys for the given users.
         Returns the HTTP method, HTTP path and data for the request.
         Args:
-            access_token (str): The access token to be used with the request.
             user_set (Set[str]): The users for which the keys should be
                 downloaded.
             token (Optional[str]): If the client is fetching keys as a result
                 of a device update received in a sync request, this should be
                 the 'since' token of that sync request, or any later sync
                 token.
+
+        * Matrix Spec
         """
         return MatrixResponse(httpx.Response(status_code=404, json={}))
 
@@ -552,10 +681,11 @@ class MatrixClient(BaseMatrixClient):
         """Claim one-time keys for use in Olm pre-key messages.
         Returns the HTTP method, HTTP path and data for the request.
         Args:
-            access_token (str): The access token to be used with the request.
             user_set (Dict[str, List[str]]): The users and devices for which to
                 claim one-time keys to be claimed. A map from user ID, to a
                 list of device IDs.
+
+        * Matrix Spec
         """
         return MatrixResponse(httpx.Response(status_code=404, json={}))
 
@@ -568,20 +698,21 @@ class MatrixClient(BaseMatrixClient):
         """Send to-device events to a set of client devices.
         Returns the HTTP method, HTTP path and data for the request.
         Args:
-            access_token (str): The access token to be used with the request.
             event_type (str): The type of the event which will be sent.
             content (Dict): The messages to send. A map from user ID, to a map
                 from device ID to message body. The device ID may also be *,
                 meaning all known devices for the user.
             tx_id (str): The transaction ID for this event.
+
+        * Matrix Spec
         """
         return MatrixResponse(httpx.Response(status_code=404, json={}))
 
     async def devices(self) -> MatrixResponse:
         """Get the list of devices for the current user.
         Returns the HTTP method and HTTP path for the request.
-        Args:
-            access_token (str): The access token to be used with the request.
+
+        * Matrix Spec
         """
         return MatrixResponse(httpx.Response(status_code=404, json={}))
 
@@ -591,10 +722,11 @@ class MatrixClient(BaseMatrixClient):
         """Update the metadata of the given device.
         Returns the HTTP method, HTTP path and data for the request.
         Args:
-            access_token (str): The access token to be used with the request.
             device_id (str): The device for which the metadata will be updated.
             content (Dict): A dictionary of metadata values that will be
                 updated for the device.
+
+        * Matrix Spec
         """
         return MatrixResponse(httpx.Response(status_code=404, json={}))
 
@@ -610,10 +742,11 @@ class MatrixClient(BaseMatrixClient):
         Should first be called with no additional authentication information.
         Returns the HTTP method, HTTP path and data for the request.
         Args:
-            access_token (str): The access token to be used with the request.
             devices (List[str]): A list of devices which will be deleted.
             auth_dict (Dict): Additional authentication information for
                 the user-interactive authentication API.
+
+        * Matrix Spec
         """
         return MatrixResponse(httpx.Response(status_code=404, json={}))
 
@@ -621,16 +754,17 @@ class MatrixClient(BaseMatrixClient):
         """Get the list of joined members for a room.
         Returns the HTTP method and HTTP path for the request.
         Args:
-            access_token (str): The access token to be used with the request.
             room_id (str): Room id of the room where the user is typing.
+
+        * Matrix Spec
         """
         return MatrixResponse(httpx.Response(status_code=404, json={}))
 
     async def joined_rooms(self) -> MatrixResponse:
         """Get the list of joined rooms for the logged in account.
         Returns the HTTP method and HTTP path for the request.
-        Args:
-            access_token (str): The access token to be used with the request.
+
+        * Matrix Spec
         """
         return MatrixResponse(httpx.Response(status_code=404, json={}))
 
@@ -639,6 +773,8 @@ class MatrixClient(BaseMatrixClient):
         Returns the HTTP method and HTTP path for the request.
         Args:
             room_alias (str): The alias to resolve
+
+        * Matrix Spec
         """
         return MatrixResponse(httpx.Response(status_code=404, json={}))
 
@@ -654,13 +790,14 @@ class MatrixClient(BaseMatrixClient):
         milliseconds or that the user has stopped typing.
         Returns the HTTP method, HTTP path and data for the request.
         Args:
-            access_token (str): The access token to be used with the request.
             room_id (str): Room id of the room where the user is typing.
             user_id (str): The user who has started to type.
             typing_state (bool): A flag representing whether the user started
                 or stopped typing
             timeout (int): For how long should the new typing notice be
                 valid for in milliseconds.
+
+        * Matrix Spec
         """
         return MatrixResponse(httpx.Response(status_code=404, json={}))
 
@@ -673,12 +810,13 @@ class MatrixClient(BaseMatrixClient):
         """Update the marker of given `receipt_type` to specified `event_id`.
         Returns the HTTP method and HTTP path for the request.
         Args:
-            access_token (str): The access token to be used with the request.
             room_id (str): Room id of the room where the marker should
                 be updated
             event_id (str): The event ID the read marker should be located at
             receipt_type (str): The type of receipt to send. Currently, only
                 `m.read` is supported by the Matrix specification.
+
+        * Matrix Spec
         """
         return MatrixResponse(httpx.Response(status_code=404, json={}))
 
@@ -693,21 +831,22 @@ class MatrixClient(BaseMatrixClient):
         and optionally the read receipt's location.
         Returns the HTTP method, HTTP path and data for the request.
         Args:
-            access_token (str): The access token to be used with the request.
             room_id (str): Room id of the room where the read
                 markers should be updated
             fully_read_event (str): The event ID the read marker should be
                 located at.
             read_event (Optional[str]): The event ID to set the read receipt
                 location at.
+
+        * Matrix Spec
         """
         return MatrixResponse(httpx.Response(status_code=404, json={}))
 
     async def content_repository_config(self) -> MatrixResponse:
         """Get the content repository configuration, such as upload limits.
         Returns the HTTP method and HTTP path for the request.
-        Args:
-            access_token (str): The access token to be used with the request.
+
+        * Matrix Spec
         """
         return MatrixResponse(httpx.Response(status_code=404, json={}))
 
@@ -720,9 +859,9 @@ class MatrixClient(BaseMatrixClient):
         The real data should be read from the file that should be uploaded.
         Note: This requests also requires the Content-Type http header to be
         set.
-        Args:
-            access_token (str): The access token to be used with the request.
             filename (str): The name of the file being uploaded
+
+        * Matrix Spec
         """
         return MatrixResponse(httpx.Response(status_code=404, json={}))
 
@@ -745,6 +884,8 @@ class MatrixClient(BaseMatrixClient):
                 attempt to fetch the media if it is deemed remote.
                 This is to prevent routing loops where the server contacts
                 itself.
+
+        * Matrix Spec
         """
         return MatrixResponse(httpx.Response(status_code=404, json={}))
 
@@ -770,6 +911,8 @@ class MatrixClient(BaseMatrixClient):
                 attempt to fetch the media if it is deemed remote.
                 This is to prevent routing loops where the server contacts
                 itself.
+
+        * Matrix Spec
         """
         return MatrixResponse(httpx.Response(status_code=404, json={}))
 
@@ -778,8 +921,8 @@ class MatrixClient(BaseMatrixClient):
         Returns the HTTP method and HTTP path for the request.
         Args:
             user_id (str): User id to get the profile for.
-            access_token (str): The access token to be used with the request. If
-                                omitted, an unauthenticated request is perfomed.
+
+        * Matrix Spec
         """
         return MatrixResponse(httpx.Response(status_code=404, json={}))
 
@@ -789,8 +932,8 @@ class MatrixClient(BaseMatrixClient):
         Returns the HTTP method and HTTP path for the request.
         Args:
             user_id (str): User id to get display name for.
-            access_token (str): The access token to be used with the request. If
-                                omitted, an unauthenticated request is perfomed.
+
+        * Matrix Spec
         """
         return MatrixResponse(httpx.Response(status_code=404, json={}))
 
@@ -800,9 +943,10 @@ class MatrixClient(BaseMatrixClient):
         """Set display name.
         Returns the HTTP method, HTTP path and data for the request.
         Args:
-            access_token (str): The access token to be used with the request.
             user_id (str): User id to set display name for.
             display_name (str): Display name for user to set.
+
+        * Matrix Spec
         """
         return MatrixResponse(httpx.Response(status_code=404, json={}))
 
@@ -811,8 +955,8 @@ class MatrixClient(BaseMatrixClient):
         Returns the HTTP method and HTTP path for the request.
         Args:
             user_id (str): User id to get avatar for.
-            access_token (str): The access token to be used with the request. If
-                                omitted, an unauthenticated request is perfomed.
+
+        * Matrix Spec
         """
         return MatrixResponse(httpx.Response(status_code=404, json={}))
 
@@ -823,9 +967,10 @@ class MatrixClient(BaseMatrixClient):
         """Set avatar url.
         Returns the HTTP method, HTTP path and data for the request.
         Args:
-            access_token (str): The access token to be used with the request.
             user_id (str): User id to set display name for.
             avatar_url (str): matrix content URI of the avatar to set.
+
+        * Matrix Spec
         """
         return MatrixResponse(httpx.Response(status_code=404, json={}))
 
@@ -833,8 +978,9 @@ class MatrixClient(BaseMatrixClient):
         """Get the given user's presence state.
         Returns the HTTP method and HTTP path for the request.
         Args:
-            access_token (str): The access token to be used with the request.
             user_id (str): User id whose presence state to get.
+
+        * Matrix Spec
         """
         return MatrixResponse(httpx.Response(status_code=404, json={}))
 
@@ -844,18 +990,19 @@ class MatrixClient(BaseMatrixClient):
         """This API sets the given user's presence state.
         Returns the HTTP method, HTTP path and data for the request.
         Args:
-            access_token (str): The access token to be used with the request.
             user_id (str): User id whose presence state to get.
             presence (str): The new presence state.
             status_msg (str, optional): The status message to attach to this state.
+
+        * Matrix Spec
         """
         return MatrixResponse(httpx.Response(status_code=404, json={}))
 
     async def whoami(self) -> MatrixResponse:
         """Get information about the owner of a given access token.
         Returns the HTTP method, HTTP path and data for the request.
-        Args:
-            access_token (str): The access token to be used with the request.
+
+        * Matrix Spec
         """
         return MatrixResponse(httpx.Response(status_code=404, json={}))
 
@@ -866,12 +1013,13 @@ class MatrixClient(BaseMatrixClient):
         This allows clients to get the context surrounding an event.
         Returns the HTTP method, HTTP path and data for the request.
         Args:
-            access_token (str): The access token to be used with the request.
             room_id (str): The room_id of the room that contains the event and
                 its context.
             event_id (str): The event_id of the event that we wish to get the
                 context for.
             limit(int, optional): The maximum number of events to request.
+
+        * Matrix Spec
         """
         return MatrixResponse(httpx.Response(status_code=404, json={}))
 
@@ -887,7 +1035,6 @@ class MatrixClient(BaseMatrixClient):
         """Upload a new filter definition to the homeserver.
         Returns the HTTP method, HTTP path and data for the request.
         Args:
-            access_token (str): The access token to be used with the request.
             user_id (str):  ID of the user uploading the filter.
             event_fields (Optional[List[str]]): List of event fields to
                 include. If this list is absent then all fields are included.
@@ -905,6 +1052,8 @@ class MatrixClient(BaseMatrixClient):
             room (Dict[str, Any]): Filters to be applied to room data.
                 The dict corresponds to the `RoomFilter` type described
                 in https://matrix.org/docs/spec/client_server/latest#id240
+
+        * Matrix Spec
         """
         return MatrixResponse(httpx.Response(status_code=404, json={}))
 
