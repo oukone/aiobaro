@@ -432,7 +432,7 @@ class MatrixClient(BaseMatrixClient):
     async def room_create(
         self,
         visibility: RoomVisibility = RoomVisibility.private,
-        alias: Optional[str] = None,
+        room_alias_name: Optional[str] = None,
         name: Optional[str] = None,
         topic: Optional[str] = None,
         room_version: Optional[str] = None,
@@ -443,8 +443,32 @@ class MatrixClient(BaseMatrixClient):
         initial_state: Sequence[Dict[str, Any]] = (),
         power_level_override: Optional[Dict[str, Any]] = None,
     ) -> MatrixResponse:
-        """Create a new room."""
-        return MatrixResponse(httpx.Response(status_code=404, json={}))
+        """Create a new room.
+        10.1.1   POST /_matrix/client/r0/createRoom
+        """
+
+        return await self.auth_client(
+            "POST",
+            "createRoom",
+            json=dict(
+                filter(
+                    lambda x: x[1],
+                    {
+                        "visibility": visibility,
+                        "room_alias_name": room_alias_name,
+                        "name": name,
+                        "topic": topic,
+                        "room_version": room_version,
+                        "federate": federate,
+                        "is_direct": is_direct,
+                        "preset": preset,
+                        "invite": invite,
+                        "initial_state": initial_state,
+                        "power_level_override": power_level_override,
+                    }.items(),
+                )
+            ),
+        )
 
     async def join(self, room_id: str) -> MatrixResponse:
         """Join a room.
