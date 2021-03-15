@@ -956,9 +956,14 @@ class MatrixClient(BaseMatrixClient):
 
         * Matrix Spec
         11.2.1   PUT /_matrix/client/r0/profile/{userId}/displayname
+        Content-Type: application/json
 
-        Rate-limited:   No.
-        Requires auth:  No.
+        {
+        "displayname": "Alice Margatroid"
+        }
+
+        Rate-limited:   Yes.
+        Requires auth:  Yes.
         """
         return await self.auth_client(
             "PUT",
@@ -975,8 +980,8 @@ class MatrixClient(BaseMatrixClient):
         * Matrix Spec
         11.2.4   GET /_matrix/client/r0/profile/{userId}/avatar_url
 
-        Rate-limited:	No.
-        Requires auth:	No.
+        Rate-limited: No.
+        Requires auth: No.
         """
         return await self.client("GET", f"profile/{user_id}/avatar_url")
 
@@ -992,8 +997,8 @@ class MatrixClient(BaseMatrixClient):
         * Matrix Spec
         11.2.3   PUT /_matrix/client/r0/profile/{userId}/avatar_url
 
-        Rate-limited:	Yes.
-        Requires auth:	Yes.
+        Rate-limited: Yes.
+        Requires auth: Yes.
         """
         return await self.auth_client(
             "PUT",
@@ -1010,13 +1015,19 @@ class MatrixClient(BaseMatrixClient):
         * Matrix Spec
         13.7.2.2   GET /_matrix/client/r0/presence/{userId}/status
 
-        Rate-limited:	No.
-        Requires auth:	Yes.
+        Rate-limited: No.
+        Requires auth: Yes.
         """
-        return await self.auth_client("GET", f"presence/{user_id}/status",)
+        return await self.auth_client(
+            "GET",
+            f"presence/{user_id}/status",
+        )
 
     async def set_presence(
-        self, user_id: str, presence: Presence = Presence.offline, status_msg: str = None
+        self,
+        user_id: str,
+        presence: Presence = Presence.offline,
+        status_msg: str = None,
     ) -> MatrixResponse:
         """This API sets the given user's presence state.
         Returns the HTTP method, HTTP path and data for the request.
@@ -1029,8 +1040,8 @@ class MatrixClient(BaseMatrixClient):
         13.7.2.1   PUT /_matrix/client/r0/presence/{userId}/status
         Content-Type: application/json
 
-        Rate-limited:	Yes.
-        Requires auth:	Yes.
+        Rate-limited: Yes.
+        Requires auth: Yes.
         """
 
         return await self.auth_client(
@@ -1054,8 +1065,8 @@ class MatrixClient(BaseMatrixClient):
         * Matrix Spec
         5.8.1   GET /_matrix/client/r0/account/whoami
 
-        Rate-limited:	Yes.
-        Requires auth:	Yes.
+        Rate-limited: Yes.
+        Requires auth: Yes.
         """
         return await self.auth_client("GET", "account/whoami")
 
