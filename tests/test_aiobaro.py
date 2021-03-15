@@ -190,9 +190,17 @@ async def test_keys_claim(matrix_client):
     assert result.ok
 
 
+@pytest.mark.asyncio
 async def test_to_device(matrix_client):
-    args, kwargs = [], {}
-    result = await matrix_client.to_device(*args, **kwargs)
+    await test_register(matrix_client)
+    await test_login(matrix_client)
+
+    event_type = "m.new_device"
+    tx_id = "35"
+    messages = {
+        "@test_user:baro": {"TLLBEANAAG": {"example_content_key": "value"}}
+    }
+    result = await matrix_client.to_device(event_type, messages, tx_id)
     assert result.ok
 
 
@@ -292,7 +300,7 @@ async def test_profile_get_displayname(matrix_client):
     user_id = "@test_user:baro"
     result = await matrix_client.profile_get_displayname(user_id)
     assert result.ok
-    assert result.json().get("displayname")
+    assert result.json().get("displayname") == "Test USER"
 
 
 @pytest.mark.asyncio
@@ -324,7 +332,7 @@ async def test_profile_get(matrix_client):
     user_id = "@test_user:baro"
     result = await matrix_client.profile_get(user_id)
     assert result.ok
-    assert result.json().get("displayname")
+    assert result.json().get("displayname") == "test_user"
 
 
 @pytest.mark.asyncio
@@ -346,7 +354,7 @@ async def test_get_presence(matrix_client):
     user_id = "@test_user:baro"
     result = await matrix_client.get_presence(user_id)
     assert result.ok
-    assert result.json().get("presence")
+    assert result.json().get("presence") == "online"
 
 
 @pytest.mark.asyncio
