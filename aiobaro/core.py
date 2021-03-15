@@ -687,6 +687,12 @@ class MatrixClient(BaseMatrixClient):
             room_id (str): The room identifier or alias to join.
 
         * Matrix Spec
+        POST /_matrix/client/r0/join/{roomIdOrAlias}
+        Content-Type: application/json
+        {}
+
+        Rate-limited:   Yes.
+        Requires auth:  Yes.
         """
         return await self.auth_client("POST", f"join/{room_id}", json={})
 
@@ -697,8 +703,12 @@ class MatrixClient(BaseMatrixClient):
             room_id (str): The room id of the room that will be left.
 
         * Matrix Spec
+        POST /_matrix/client/r0/rooms/{roomId}/leave
+
+        Rate-limited:   Yes.
+        Requires auth:  Yes.
         """
-        return MatrixResponse(httpx.Response(status_code=404, json={}))
+        return await self.auth_client("POST", f"rooms/{room_id}/leave")
 
     async def room_forget(self, room_id: str) -> MatrixResponse:
         """Forget a room.
