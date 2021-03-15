@@ -45,6 +45,7 @@ git clone https://github.com/oukone/aiobaro.git && cd aiobaro
 poetry config virtualenvs.in-project true
 poetry shell
 poetry install
+pre-commit install
 ```
 
 ## License
