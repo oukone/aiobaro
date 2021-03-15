@@ -204,9 +204,12 @@ async def test_to_device(matrix_client):
     assert result.ok
 
 
+@pytest.mark.asyncio
 async def test_devices(matrix_client):
-    args, kwargs = [], {}
-    result = await matrix_client.devices(*args, **kwargs)
+    await test_register(matrix_client)
+    await test_login(matrix_client)
+
+    result = await matrix_client.devices()
     assert result.ok
 
 

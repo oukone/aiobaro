@@ -835,8 +835,12 @@ class MatrixClient(BaseMatrixClient):
         Returns the HTTP method and HTTP path for the request.
 
         * Matrix Spec
+        GET /_matrix/client/r0/devices
+
+        Rate-limited:   No.
+        Requires auth:  Yes.
         """
-        return MatrixResponse(httpx.Response(status_code=404, json={}))
+        return await self.auth_client("GET", f"devices")
 
     # TODO #29
     async def get_device(self) -> MatrixResponse:
