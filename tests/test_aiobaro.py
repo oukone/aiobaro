@@ -213,9 +213,21 @@ async def test_devices(matrix_client):
     assert result.ok
 
 
+@pytest.mark.asyncio
 async def test_update_device(matrix_client):
-    args, kwargs = [], {}
-    result = await matrix_client.update_device(*args, **kwargs)
+    await test_register(matrix_client)
+    await test_login(matrix_client)
+
+    devices_info = await matrix_client.devices()
+    assert (
+        devices_info.json()["devices"][0]["display_name"]
+        == "Test_user' device"
+    )
+
+    device_id = devices_info.json()["devices"][0]["device_id"]
+    display_name = "Phone of Test User"
+
+    result = await matrix_client.update_device(device_id, display_name)
     assert result.ok
 
 
