@@ -102,6 +102,15 @@ class PushRuleKind(str, Enum):
     underride = "underride"
 
 
+@unique
+class Presence(str, Enum):
+    """Presence state for a user."""
+
+    online = "online"
+    offline = "offline"
+    unavailable = "unavailable"
+
+
 class MatrixResponse:
     def __init__(self, response: httpx.Response):
         self.response = response

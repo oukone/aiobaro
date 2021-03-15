@@ -327,22 +327,36 @@ async def test_profile_get(matrix_client):
     assert result.json().get("displayname")
 
 
-async def test_get_presence(matrix_client):
-    args, kwargs = [], {}
-    result = await matrix_client.get_presence(*args, **kwargs)
-    assert result.ok
-
-
+@pytest.mark.asyncio
 async def test_set_presence(matrix_client):
-    args, kwargs = [], {}
-    result = await matrix_client.set_presence(*args, **kwargs)
+    await test_register(matrix_client)
+    await test_login(matrix_client)
+
+    user_id = "@test_user:baro"
+    presence = "online"
+
+    result = await matrix_client.set_presence(user_id, presence)
     assert result.ok
 
 
+@pytest.mark.asyncio
+async def test_get_presence(matrix_client):
+    await test_set_presence(matrix_client)
+
+    user_id = "@test_user:baro"
+    result = await matrix_client.get_presence(user_id)
+    assert result.ok
+    assert result.json().get("presence")
+
+
+@pytest.mark.asyncio
 async def test_whoami(matrix_client):
-    args, kwargs = [], {}
-    result = await matrix_client.whoami(*args, **kwargs)
+    await test_register(matrix_client)
+    await test_login(matrix_client)
+
+    result = await matrix_client.whoami()
     assert result.ok
+    assert result.json().get("user_id")
 
 
 async def test_room_context(matrix_client):
