@@ -390,7 +390,7 @@ class MatrixClient(BaseMatrixClient):
     async def room_get_state_event(
         self,
         room_id: str,
-        event_event_type: str,
+        event_type: str,
         state_key: str = "",
     ) -> MatrixResponse:
         """Fetch a state event.
@@ -401,8 +401,28 @@ class MatrixClient(BaseMatrixClient):
             event_type (str): The type of the event that will be fetched.
             state_key: The key of the state to look up. Defaults to an empty
                 string.
+
+        * Matrix Spec
+        GET /_matrix/client/r0/rooms/{roomId}/state/{eventType}/{stateKey}
+
+        params = {
+            "room_id": room_id,
+            "event_type": event_type,
+            "state_key": state_key
+        }
+
+        Rate-limited:   No.
+        Requires auth:  Yes.
         """
-        return MatrixResponse(httpx.Response(status_code=404, json={}))
+        return await self.auth_client(
+            "GET",
+            f"rooms/{room_id}/state/{event_type}/{state_key}",
+            params={
+                "room_id": room_id,
+                "event_type": event_type,
+                "state_key": state_key,
+            },
+        )
 
     async def room_get_state(self, room_id: str) -> MatrixResponse:
         """Fetch the current state for a room.
@@ -412,8 +432,20 @@ class MatrixClient(BaseMatrixClient):
                 from.
 
         * Matrix Spec
+        GET /_matrix/client/r0/rooms/{roomId}/state
+
+        params = {
+            "room_id": room_id
+        }
+
+        Rate-limited:   No.
+        Requires auth:  Yes.
         """
-        return MatrixResponse(httpx.Response(status_code=404, json={}))
+        return await self.auth_client(
+            "GET",
+            f"rooms/{room_id}/state",
+            params={"room_id": room_id},
+        )
 
     async def room_redact(
         self,
@@ -433,8 +465,26 @@ class MatrixClient(BaseMatrixClient):
                 event was redacted.
 
         * Matrix Spec
+        PUT /_matrix/client/r0/rooms/{roomId}/redact/{eventId}/{txnId}
+        Content-Type: application/json
+
+        {
+            "reason": "Indecent material"
+        }
+
+        Rate-limited:   No.
+        Requires auth:  Yes.
         """
-        return MatrixResponse(httpx.Response(status_code=404, json={}))
+        return await self.auth_client(
+            "POST",
+            f"rooms/{room_id}/redact/{event_id}/{str(tx_id)}",
+            json=dict(
+                filter(
+                    lambda x: x[1],
+                    {"reason": reason}.items(),
+                )
+            ),
+        )
 
     async def room_kick(
         self, room_id: str, user_id: str, reason: Optional[str] = None
@@ -449,7 +499,16 @@ class MatrixClient(BaseMatrixClient):
 
         * Matrix Spec
         """
-        return MatrixResponse(httpx.Response(status_code=404, json={}))
+        return await self.auth_client(
+            "POST",
+            f"rooms{room_id}/kick",
+            json=dict(
+                filter(
+                    lambda x: x[1],
+                    {"user_id": user_id, "reason": reason}.items(),
+                )
+            ),
+        )
 
     async def room_ban(
         self,
@@ -467,7 +526,16 @@ class MatrixClient(BaseMatrixClient):
 
         * Matrix Spec
         """
-        return MatrixResponse(httpx.Response(status_code=404, json={}))
+        return await self.auth_client(
+            "POST",
+            f"rooms{room_id}/ban",
+            json=dict(
+                filter(
+                    lambda x: x[1],
+                    {"user_id": user_id, "reason": reason}.items(),
+                )
+            ),
+        )
 
     async def room_unban(
         self,
@@ -483,7 +551,16 @@ class MatrixClient(BaseMatrixClient):
 
         * Matrix Spec
         """
-        return MatrixResponse(httpx.Response(status_code=404, json={}))
+        return await self.auth_client(
+            "POST",
+            f"rooms{room_id}/unban",
+            json=dict(
+                filter(
+                    lambda x: x[1],
+                    {"user_id": user_id}.items(),
+                )
+            ),
+        )
 
     async def room_invite(self, room_id: str, user_id: str) -> MatrixResponse:
         """Invite a user to a room.
@@ -495,7 +572,16 @@ class MatrixClient(BaseMatrixClient):
 
         * Matrix Spec
         """
-        return MatrixResponse(httpx.Response(status_code=404, json={}))
+        return await self.auth_client(
+            "POST",
+            f"rooms{room_id}/invite",
+            json=dict(
+                filter(
+                    lambda x: x[1],
+                    {"user_id": user_id}.items(),
+                )
+            ),
+        )
 
     async def room_create(
         self,
@@ -582,12 +668,12 @@ class MatrixClient(BaseMatrixClient):
                         "name": name,
                         "topic": topic,
                         "room_version": room_version,
-                        "federate": federate,
                         "is_direct": is_direct,
                         "preset": preset,
                         "invite": invite,
                         "initial_state": initial_state,
-                        "power_level_override": power_level_override,
+                        "power_level_content_override": power_level_override,
+                        "creation_content": {"m.federate": federate},
                     }.items(),
                 )
             ),
@@ -601,7 +687,7 @@ class MatrixClient(BaseMatrixClient):
 
         * Matrix Spec
         """
-        return MatrixResponse(httpx.Response(status_code=404, json={}))
+        return await self.auth_client("POST", f"join/{room_id}", json={})
 
     async def room_leave(self, room_id: str) -> MatrixResponse:
         """Leave a room.
