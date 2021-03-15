@@ -818,18 +818,30 @@ class MatrixClient(BaseMatrixClient):
         return MatrixResponse(httpx.Response(status_code=404, json={}))
 
     async def update_device(
-        self, device_id: str, content: Dict[str, str]
+        self, device_id: str, display_name: str = None
     ) -> MatrixResponse:
         """Update the metadata of the given device.
         Returns the HTTP method, HTTP path and data for the request.
         Args:
             device_id (str): The device for which the metadata will be updated.
-            content (Dict): A dictionary of metadata values that will be
-                updated for the device.
+            display_name (str): The new display name for this device. If not given, the display name is unchanged.
 
         * Matrix Spec
+        PUT /_matrix/client/r0/devices/{deviceId} HTTP/1.1
+        Content-Type: application/json
+
+        {
+            "display_name": "My other phone"
+        }
+
+        Rate-limited: No.
+        Requires auth: Yes.
         """
-        return MatrixResponse(httpx.Response(status_code=404, json={}))
+        return await self.auth_client(
+            "PUT",
+            f"devices/{device_id}",
+            json={"display_name": display_name},
+        )
 
     async def delete_devices(
         self,
