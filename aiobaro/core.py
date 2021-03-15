@@ -717,8 +717,12 @@ class MatrixClient(BaseMatrixClient):
             room_id (str): The room id of the room that will be forgotten.
 
         * Matrix Spec
+        POST /_matrix/client/r0/rooms/{roomId}/forget
+
+        Rate-limited:   Yes.
+        Requires auth:  Yes.
         """
-        return MatrixResponse(httpx.Response(status_code=404, json={}))
+        return await self.auth_client("POST", f"rooms/{room_id}/forget")
 
     async def room_messages(
         self,
