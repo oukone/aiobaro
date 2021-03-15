@@ -2,7 +2,7 @@
 name: Matrix spec template
 about: This template provides a guideline on how to create issues related to matrix
   client-server spec implementation
-title: 'Matrix client implementation for: ex. [createRoom]'
+title: 'Matrix client implementation: ex. [createRoom]'
 labels: Matrix spec, enhancement
 assignees: ''
 
@@ -25,5 +25,29 @@ Content-Type: application/json
 }
 ```
 
-Rate-limited:	No.  
-Requires auth:	Yes.  
+&nbsp;
+
+## Request format
+
+Parameter | Type | Description
+-- | -- | --
+**Path Parameters**
+param1 | string | Required. param description.
+**Query Parameters**
+param1 | string | Required. param description.
+**Json**
+field1 | string | Required. field description.
+
+&nbsp;
+
+## Response format
+Field | Type | Description
+-- | -- | --
+**Json**
+field1 | string | Required. field description.
+
+&nbsp;
+&nbsp;
+
+Rate-limited:	No.
+Requires auth:	Yes.
