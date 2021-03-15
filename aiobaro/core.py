@@ -866,8 +866,9 @@ class MatrixClient(BaseMatrixClient):
         Returns the HTTP method and HTTP path for the request.
 
         * Matrix Spec
+        GET /_matrix/client/r0/joined_rooms
         """
-        return MatrixResponse(httpx.Response(status_code=404, json={}))
+        return await self.auth_client("GET", "joined_rooms")
 
     async def room_resolve_alias(self, room_alias: str) -> MatrixResponse:
         """Resolve a room alias to a room ID.
