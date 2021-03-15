@@ -274,52 +274,89 @@ async def test_thumbnail(matrix_client):
     assert result.ok
 
 
-async def test_profile_get(matrix_client):
-    args, kwargs = [], {}
-    result = await matrix_client.profile_get(*args, **kwargs)
-    assert result.ok
-
-
-async def test_profile_get_displayname(matrix_client):
-    args, kwargs = [], {}
-    result = await matrix_client.profile_get_displayname(*args, **kwargs)
-    assert result.ok
-
-
+@pytest.mark.asyncio
 async def test_profile_set_displayname(matrix_client):
-    args, kwargs = [], {}
-    result = await matrix_client.profile_set_displayname(*args, **kwargs)
+    await test_register(matrix_client)
+    await test_login(matrix_client)
+
+    user_id = "@test_user:baro"
+    display_name = "Test USER"
+    result = await matrix_client.profile_set_displayname(user_id, display_name)
     assert result.ok
 
 
-async def test_profile_get_avatar(matrix_client):
-    args, kwargs = [], {}
-    result = await matrix_client.profile_get_avatar(*args, **kwargs)
+@pytest.mark.asyncio
+async def test_profile_get_displayname(matrix_client):
+    await test_profile_set_displayname(matrix_client)
+
+    user_id = "@test_user:baro"
+    result = await matrix_client.profile_get_displayname(user_id)
     assert result.ok
+    assert result.json().get("displayname")
 
 
+@pytest.mark.asyncio
 async def test_profile_set_avatar(matrix_client):
-    args, kwargs = [], {}
-    result = await matrix_client.profile_set_avatar(*args, **kwargs)
+    await test_register(matrix_client)
+    await test_login(matrix_client)
+
+    user_id = "@test_user:baro"
+    avatar_url = "mxc://matrix.org/avatar_url"
+    result = await matrix_client.profile_set_avatar(user_id, avatar_url)
     assert result.ok
 
 
-async def test_get_presence(matrix_client):
-    args, kwargs = [], {}
-    result = await matrix_client.get_presence(*args, **kwargs)
+@pytest.mark.asyncio
+async def test_profile_get_avatar(matrix_client):
+    await test_profile_set_avatar(matrix_client)
+
+    user_id = "@test_user:baro"
+    result = await matrix_client.profile_get_avatar(user_id)
     assert result.ok
+    assert result.json().get("avatar_url") == "mxc://matrix.org/avatar_url"
 
 
+@pytest.mark.asyncio
+async def test_profile_get(matrix_client):
+    await test_register(matrix_client)
+    await test_login(matrix_client)
+
+    user_id = "@test_user:baro"
+    result = await matrix_client.profile_get(user_id)
+    assert result.ok
+    assert result.json().get("displayname")
+
+
+@pytest.mark.asyncio
 async def test_set_presence(matrix_client):
-    args, kwargs = [], {}
-    result = await matrix_client.set_presence(*args, **kwargs)
+    await test_register(matrix_client)
+    await test_login(matrix_client)
+
+    user_id = "@test_user:baro"
+    presence = "online"
+
+    result = await matrix_client.set_presence(user_id, presence)
     assert result.ok
 
 
+@pytest.mark.asyncio
+async def test_get_presence(matrix_client):
+    await test_set_presence(matrix_client)
+
+    user_id = "@test_user:baro"
+    result = await matrix_client.get_presence(user_id)
+    assert result.ok
+    assert result.json().get("presence")
+
+
+@pytest.mark.asyncio
 async def test_whoami(matrix_client):
-    args, kwargs = [], {}
-    result = await matrix_client.whoami(*args, **kwargs)
+    await test_register(matrix_client)
+    await test_login(matrix_client)
+
+    result = await matrix_client.whoami()
     assert result.ok
+    assert result.json().get("user_id")
 
 
 async def test_room_context(matrix_client):

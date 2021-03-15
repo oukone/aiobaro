@@ -20,6 +20,7 @@ from .models import (
     HttpVerbs,
     MatrixResponse,
     MessageDirection,
+    Presence,
     PushRuleKind,
     ResizingMethod,
     RoomPreset,
@@ -1009,19 +1010,26 @@ class MatrixClient(BaseMatrixClient):
             user_id (str): User id to get the profile for.
 
         * Matrix Spec
+        GET /_matrix/client/r0/profile/{userId} HTTP/1.1
+
+        Rate-limited:   No.
+        Requires auth:  No.
         """
-        return MatrixResponse(httpx.Response(status_code=404, json={}))
+        return await self.client("GET", f"profile/{user_id}")
 
     async def profile_get_displayname(self, user_id: str) -> MatrixResponse:
-        # type (str, str) -> Tuple[str, str]
         """Get display name.
         Returns the HTTP method and HTTP path for the request.
         Args:
             user_id (str): User id to get display name for.
 
         * Matrix Spec
+        11.2.2   GET /_matrix/client/r0/profile/{userId}/displayname
+
+        Rate-limited:   No.
+        Requires auth:  No.
         """
-        return MatrixResponse(httpx.Response(status_code=404, json={}))
+        return await self.client("GET", f"profile/{user_id}/displayname")
 
     async def profile_set_displayname(
         self, user_id: str, display_name: str
@@ -1033,8 +1041,21 @@ class MatrixClient(BaseMatrixClient):
             display_name (str): Display name for user to set.
 
         * Matrix Spec
+        11.2.1   PUT /_matrix/client/r0/profile/{userId}/displayname
+        Content-Type: application/json
+
+        {
+        "displayname": "Alice Margatroid"
+        }
+
+        Rate-limited:   Yes.
+        Requires auth:  Yes.
         """
-        return MatrixResponse(httpx.Response(status_code=404, json={}))
+        return await self.auth_client(
+            "PUT",
+            f"profile/{user_id}/displayname",
+            json={"displayname": display_name},
+        )
 
     async def profile_get_avatar(self, user_id: str) -> MatrixResponse:
         """Get avatar URL.
@@ -1043,13 +1064,16 @@ class MatrixClient(BaseMatrixClient):
             user_id (str): User id to get avatar for.
 
         * Matrix Spec
+        11.2.4   GET /_matrix/client/r0/profile/{userId}/avatar_url
+
+        Rate-limited: No.
+        Requires auth: No.
         """
-        return MatrixResponse(httpx.Response(status_code=404, json={}))
+        return await self.client("GET", f"profile/{user_id}/avatar_url")
 
     async def profile_set_avatar(
         self, user_id: str, avatar_url: str
     ) -> MatrixResponse:
-        # type (str, str, str) -> Tuple[str, str, str]
         """Set avatar url.
         Returns the HTTP method, HTTP path and data for the request.
         Args:
@@ -1057,8 +1081,16 @@ class MatrixClient(BaseMatrixClient):
             avatar_url (str): matrix content URI of the avatar to set.
 
         * Matrix Spec
+        11.2.3   PUT /_matrix/client/r0/profile/{userId}/avatar_url
+
+        Rate-limited: Yes.
+        Requires auth: Yes.
         """
-        return MatrixResponse(httpx.Response(status_code=404, json={}))
+        return await self.auth_client(
+            "PUT",
+            f"profile/{user_id}/avatar_url",
+            json={"avatar_url": avatar_url},
+        )
 
     async def get_presence(self: str, user_id: str) -> MatrixResponse:
         """Get the given user's presence state.
@@ -1067,11 +1099,21 @@ class MatrixClient(BaseMatrixClient):
             user_id (str): User id whose presence state to get.
 
         * Matrix Spec
+        13.7.2.2   GET /_matrix/client/r0/presence/{userId}/status
+
+        Rate-limited: No.
+        Requires auth: Yes.
         """
-        return MatrixResponse(httpx.Response(status_code=404, json={}))
+        return await self.auth_client(
+            "GET",
+            f"presence/{user_id}/status",
+        )
 
     async def set_presence(
-        self, user_id: str, presence: str, status_msg: str = None
+        self,
+        user_id: str,
+        presence: Presence = Presence.offline,
+        status_msg: str = None,
     ) -> MatrixResponse:
         """This API sets the given user's presence state.
         Returns the HTTP method, HTTP path and data for the request.
@@ -1081,16 +1123,38 @@ class MatrixClient(BaseMatrixClient):
             status_msg (str, optional): The status message to attach to this state.
 
         * Matrix Spec
+        13.7.2.1   PUT /_matrix/client/r0/presence/{userId}/status
+        Content-Type: application/json
+
+        Rate-limited: Yes.
+        Requires auth: Yes.
         """
-        return MatrixResponse(httpx.Response(status_code=404, json={}))
+
+        return await self.auth_client(
+            "PUT",
+            f"presence/{user_id}/status",
+            json=dict(
+                filter(
+                    lambda x: x[1],
+                    {
+                        "presence": presence,
+                        "status_msg": status_msg,
+                    }.items(),
+                )
+            ),
+        )
 
     async def whoami(self) -> MatrixResponse:
         """Get information about the owner of a given access token.
         Returns the HTTP method, HTTP path and data for the request.
 
         * Matrix Spec
+        5.8.1   GET /_matrix/client/r0/account/whoami
+
+        Rate-limited: Yes.
+        Requires auth: Yes.
         """
-        return MatrixResponse(httpx.Response(status_code=404, json={}))
+        return await self.auth_client("GET", "account/whoami")
 
     async def room_context(
         self, room_id: str, event_id: str, limit: Optional[str] = None
