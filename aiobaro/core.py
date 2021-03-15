@@ -790,25 +790,46 @@ class MatrixClient(BaseMatrixClient):
         """
         return MatrixResponse(httpx.Response(status_code=404, json={}))
 
+    # TODO #25
     async def to_device(
         self,
         event_type: str,
-        content: Dict[Any, Any],
+        messages: Dict[Any, Any],
         tx_id: Union[str, UUID],
     ) -> MatrixResponse:
         """Send to-device events to a set of client devices.
         Returns the HTTP method, HTTP path and data for the request.
         Args:
             event_type (str): The type of the event which will be sent.
-            content (Dict): The messages to send. A map from user ID, to a map
+            tx_id (str): The transaction ID for this event.
+            messages (Dict): The messages to send. A map from user ID, to a map
                 from device ID to message body. The device ID may also be *,
                 meaning all known devices for the user.
-            tx_id (str): The transaction ID for this event.
 
         * Matrix Spec
-        """
-        return MatrixResponse(httpx.Response(status_code=404, json={}))
+        PUT /_matrix/client/r0/sendToDevice/{eventType}/{txnId}
+        Content-Type: application/json
 
+        {
+            "messages": {
+                "@alice:example.com": {
+                "TLLBEANAAG": {
+                    "example_content_key": "value"
+                }
+                }
+            }
+        }
+
+        Rate-limited: No.
+        Requires auth: Yes.
+        """
+        return await self.auth_client(
+            "PUT",
+            f"sendToDevice/{event_type}/{tx_id}",
+            json={"messages": messages},
+        )
+
+    # TODO #26
     async def devices(self) -> MatrixResponse:
         """Get the list of devices for the current user.
         Returns the HTTP method and HTTP path for the request.
@@ -817,6 +838,16 @@ class MatrixClient(BaseMatrixClient):
         """
         return MatrixResponse(httpx.Response(status_code=404, json={}))
 
+    # TODO #29
+    async def get_device(self) -> MatrixResponse:
+        """Gets information on a single device, by device id.
+        Returns the HTTP method and HTTP path for the request.
+
+        * Matrix Spec
+        """
+        return MatrixResponse(httpx.Response(status_code=404, json={}))
+
+    # TODO #27
     async def update_device(
         self, device_id: str, display_name: str = None
     ) -> MatrixResponse:
@@ -843,12 +874,13 @@ class MatrixClient(BaseMatrixClient):
             json={"display_name": display_name},
         )
 
+    # TODO #28
     async def delete_devices(
         self,
         devices: List[str],
         auth_dict: Optional[Dict[str, str]] = None,
     ) -> MatrixResponse:
-        """Delete a device.
+        """Delete a list of device.
         This API endpoint uses the User-Interactive Authentication API.
         This tells the server to delete the given devices and invalidate their
         associated access tokens.
