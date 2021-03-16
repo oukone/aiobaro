@@ -840,16 +840,7 @@ class MatrixClient(BaseMatrixClient):
         Rate-limited:   No.
         Requires auth:  Yes.
         """
-        return await self.auth_client("GET", f"devices")
-
-    # TODO #29
-    async def get_device(self) -> MatrixResponse:
-        """Gets information on a single device, by device id.
-        Returns the HTTP method and HTTP path for the request.
-
-        * Matrix Spec
-        """
-        return MatrixResponse(httpx.Response(status_code=404, json={}))
+        return await self.auth_client("GET", "devices")
 
     # TODO #27
     async def update_device(
@@ -882,7 +873,7 @@ class MatrixClient(BaseMatrixClient):
     async def delete_devices(
         self,
         devices: List[str],
-        auth_dict: Optional[Dict[str, str]] = None,
+        auth: Optional[Dict[str, str]] = None,
     ) -> MatrixResponse:
         """Delete a list of device.
         This API endpoint uses the User-Interactive Authentication API.
@@ -892,12 +883,44 @@ class MatrixClient(BaseMatrixClient):
         Returns the HTTP method, HTTP path and data for the request.
         Args:
             devices (List[str]): A list of devices which will be deleted.
-            auth_dict (Dict): Additional authentication information for
+            auth (Dict): Additional authentication information for
                 the user-interactive authentication API.
 
         * Matrix Spec
+        POST /_matrix/client/r0/delete_devices HTTP/1.1
+        Content-Type: application/json
+
+        {
+            "devices": [
+                "QBUAZIFURK",
+                "AUIECTSRND"
+            ],
+            "auth": {
+                "type": "example.type.foo",
+                "session": "xxxxx",
+                "example_credential": "verypoorsharedsecret"
+            }
+        }
+
+        Rate-limited: No.
+        Requires auth: Yes.
         """
-        return MatrixResponse(httpx.Response(status_code=404, json={}))
+
+        json_data = dict(
+            filter(
+                lambda x: x[1],
+                {
+                    "devices": devices,
+                    "auth": auth,
+                }.items(),
+            )
+        )
+
+        return await self.auth_client(
+            "POST",
+            "delete_devices",
+            json=json_data,
+        )
 
     async def joined_members(self, room_id: str) -> MatrixResponse:
         """Get the list of joined members for a room.
