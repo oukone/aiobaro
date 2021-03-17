@@ -3,4 +3,5 @@ from .fixtures import (
     is_responsive,
     matrix_client,
     matrix_server_url,
+    seed_data,
 )

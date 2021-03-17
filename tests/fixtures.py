@@ -1,4 +1,5 @@
 import pathlib
+from collections import namedtuple
 
 import pytest
 
@@ -32,3 +33,23 @@ def matrix_server_url(docker_ip, docker_services) -> str:
 @pytest.fixture(scope="session")
 def matrix_client(matrix_server_url):
     return MatrixClient(matrix_server_url)
+
+
+@pytest.fixture(scope="function")
+async def seed_data(matrix_client):
+    class SeedData(namedtuple("SeedData", ["room", "users", "devices"])):
+        __slots__ = ()
+
+    users = [
+        await matrix_client.register(
+            f"seed_user_{i}", password="seed_password"
+        )
+        for i in {1, 2}
+    ]
+    await matrix_client.login("seed_user_1", password="seed_password")
+    devices = await matrix_client.devices()
+    return SeedData(
+        room=None,
+        users=users,
+        devices=devices,
+    )

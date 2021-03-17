@@ -191,19 +191,18 @@ async def test_keys_claim(matrix_client):
 
 
 @pytest.mark.asyncio
-async def test_to_device(matrix_client):
-    await test_register(matrix_client)
-    await test_login(matrix_client)
+async def test_to_device(matrix_client, seed_data):
 
-    devices_info = await matrix_client.devices()
+    devices_info = seed_data.devices
     device_id = devices_info.json()["devices"][0]["device_id"]
 
     event_type = "m.new_device"
-    tx_id = "35"
+    tx_id = str(uuid.uuid1())
+    user = seed_data.users[0].json()
 
     content = {
         "messages": {
-            "@test_user:baro": {device_id: {"example_content_key": "value"}}
+            user["user_id"]: {device_id: {"example_content_key": "value"}}
         }
     }
 
@@ -212,48 +211,57 @@ async def test_to_device(matrix_client):
 
 
 @pytest.mark.asyncio
-async def test_devices(matrix_client):
-    await test_register(matrix_client)
-    await test_login(matrix_client)
-
+async def test_devices(matrix_client, seed_data):
     result = await matrix_client.devices()
     assert result.ok
+    assert len(result.json()["devices"]) == 2
 
 
 @pytest.mark.asyncio
-async def test_update_device(matrix_client):
-    await test_register(matrix_client)
-    await test_login(matrix_client)
+async def test_update_device(matrix_client, seed_data):
 
-    devices_info = await matrix_client.devices()
+    devices_info = seed_data.devices
     assert (
         devices_info.json()["devices"][0]["display_name"]
-        == "Test_user' device"
+        == "Seed_user_1' device"
     )
 
     device_id = devices_info.json()["devices"][0]["device_id"]
 
-    content = {"display_name": "Phone of Test User"}
+    content = {"display_name": "Test User's Phone"}
 
     result = await matrix_client.update_device(device_id, content)
     assert result.ok
+    devices = await matrix_client.devices()
+    assert list(
+        filter(
+            lambda d: d["display_name"] == "Test User's Phone",
+            devices.json()["devices"],
+        )
+    )
 
 
 @pytest.mark.asyncio
-async def test_delete_devices(matrix_client):
-    await test_register(matrix_client)
-    await test_login(matrix_client)
+async def test_delete_devices(matrix_client, seed_data):
 
-    devices_info = await matrix_client.devices()
-    devices_to_delete = [devices_info.json()["devices"][1]["device_id"]]
+    devices_to_delete = [seed_data.devices.json()["devices"][0]["device_id"]]
+
+    user = await matrix_client.whoami()
+    assert user.ok
 
     auth = {
         "type": "m.login.password",
-        "identifier": {"type": "m.id.user", "user": "test_user"},
-        "password": "test_password",
+        "identifier": {"type": "m.id.user", "user": user.json()["user_id"]},
+        "password": "seed_password",
     }
     result = await matrix_client.delete_devices(devices_to_delete, auth=auth)
     assert result.ok
+
+    devices = await matrix_client.devices()
+    assert devices.ok
+    assert not set(
+        map(lambda d: d["device_id"], devices.json()["devices"])
+    ) & set(devices_to_delete)
 
 
 async def test_joined_members(matrix_client):
