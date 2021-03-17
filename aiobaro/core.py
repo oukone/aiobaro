@@ -794,7 +794,7 @@ class MatrixClient(BaseMatrixClient):
     async def to_device(
         self,
         event_type: str,
-        messages: Dict[Any, Any],
+        content: Dict[Any, Any],
         tx_id: Union[str, UUID],
     ) -> MatrixResponse:
         """Send to-device events to a set of client devices.
@@ -826,7 +826,7 @@ class MatrixClient(BaseMatrixClient):
         return await self.auth_client(
             "PUT",
             f"sendToDevice/{event_type}/{tx_id}",
-            json={"messages": messages},
+            json=content,
         )
 
     # TODO #26
@@ -844,7 +844,7 @@ class MatrixClient(BaseMatrixClient):
 
     # TODO #27
     async def update_device(
-        self, device_id: str, display_name: str = None
+        self, device_id: str, content: Dict[str, str]
     ) -> MatrixResponse:
         """Update the metadata of the given device.
         Returns the HTTP method, HTTP path and data for the request.
@@ -866,7 +866,7 @@ class MatrixClient(BaseMatrixClient):
         return await self.auth_client(
             "PUT",
             f"devices/{device_id}",
-            json={"display_name": display_name},
+            json=content,
         )
 
     # TODO #28

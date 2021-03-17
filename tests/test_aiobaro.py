@@ -200,10 +200,14 @@ async def test_to_device(matrix_client):
 
     event_type = "m.new_device"
     tx_id = "35"
-    messages = {
-        "@test_user:baro": {device_id: {"example_content_key": "value"}}
+
+    content = {
+        "messages": {
+            "@test_user:baro": {device_id: {"example_content_key": "value"}}
+        }
     }
-    result = await matrix_client.to_device(event_type, messages, tx_id)
+
+    result = await matrix_client.to_device(event_type, content, tx_id)
     assert result.ok
 
 
@@ -228,9 +232,10 @@ async def test_update_device(matrix_client):
     )
 
     device_id = devices_info.json()["devices"][0]["device_id"]
-    display_name = "Phone of Test User"
 
-    result = await matrix_client.update_device(device_id, display_name)
+    content = {"display_name": "Phone of Test User"}
+
+    result = await matrix_client.update_device(device_id, content)
     assert result.ok
 
 
