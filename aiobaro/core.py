@@ -790,7 +790,6 @@ class MatrixClient(BaseMatrixClient):
         """
         return MatrixResponse(httpx.Response(status_code=404, json={}))
 
-    # TODO #25
     async def to_device(
         self,
         event_type: str,
@@ -829,7 +828,6 @@ class MatrixClient(BaseMatrixClient):
             json=content,
         )
 
-    # TODO #26
     async def devices(self) -> MatrixResponse:
         """Get the list of devices for the current user.
         Returns the HTTP method and HTTP path for the request.
@@ -842,7 +840,6 @@ class MatrixClient(BaseMatrixClient):
         """
         return await self.auth_client("GET", "devices")
 
-    # TODO #27
     async def update_device(
         self, device_id: str, content: Dict[str, str]
     ) -> MatrixResponse:
@@ -869,7 +866,6 @@ class MatrixClient(BaseMatrixClient):
             json=content,
         )
 
-    # TODO #28
     async def delete_devices(
         self,
         devices: List[str],
