@@ -822,6 +822,8 @@ class MatrixClient(BaseMatrixClient):
         Rate-limited: No.
         Requires auth: Yes.
         """
+        tx_id = str(tx_id)  # Added for the scenario where tx_id is UUID
+
         return await self.auth_client(
             "PUT",
             f"sendToDevice/{event_type}/{tx_id}",
