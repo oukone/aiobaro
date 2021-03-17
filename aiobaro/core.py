@@ -858,8 +858,12 @@ class MatrixClient(BaseMatrixClient):
             room_id (str): Room id of the room where the user is typing.
 
         * Matrix Spec
+         GET /_matrix/client/r0/rooms/{roomId}/joined_members
+
+        Rate-limited:   No.
+        Requires auth:  Yes.
         """
-        return MatrixResponse(httpx.Response(status_code=404, json={}))
+        return await self.auth_client("GET", f"rooms/{room_id}/joined_members")
 
     async def joined_rooms(self) -> MatrixResponse:
         """Get the list of joined rooms for the logged in account.
