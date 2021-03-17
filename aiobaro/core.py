@@ -806,16 +806,41 @@ class MatrixClient(BaseMatrixClient):
             tx_id (str): The transaction ID for this event.
 
         * Matrix Spec
+        PUT /_matrix/client/r0/sendToDevice/{eventType}/{txnId}
+        Content-Type: application/json
+
+        {
+            "messages": {
+                "@alice:example.com": {
+                "TLLBEANAAG": {
+                    "example_content_key": "value"
+                }
+                }
+            }
+        }
+
+        Rate-limited: No.
+        Requires auth: Yes.
         """
-        return MatrixResponse(httpx.Response(status_code=404, json={}))
+        tx_id = str(tx_id)  # Added for the scenario where tx_id is UUID
+
+        return await self.auth_client(
+            "PUT",
+            f"sendToDevice/{event_type}/{tx_id}",
+            json=content,
+        )
 
     async def devices(self) -> MatrixResponse:
         """Get the list of devices for the current user.
         Returns the HTTP method and HTTP path for the request.
 
         * Matrix Spec
+        GET /_matrix/client/r0/devices
+
+        Rate-limited:   No.
+        Requires auth:  Yes.
         """
-        return MatrixResponse(httpx.Response(status_code=404, json={}))
+        return await self.auth_client("GET", "devices")
 
     async def update_device(
         self, device_id: str, content: Dict[str, str]
@@ -828,15 +853,28 @@ class MatrixClient(BaseMatrixClient):
                 updated for the device.
 
         * Matrix Spec
+        PUT /_matrix/client/r0/devices/{deviceId} HTTP/1.1
+        Content-Type: application/json
+
+        {
+            "display_name": "My other phone"
+        }
+
+        Rate-limited: No.
+        Requires auth: Yes.
         """
-        return MatrixResponse(httpx.Response(status_code=404, json={}))
+        return await self.auth_client(
+            "PUT",
+            f"devices/{device_id}",
+            json=content,
+        )
 
     async def delete_devices(
         self,
         devices: List[str],
-        auth_dict: Optional[Dict[str, str]] = None,
+        auth: Optional[Dict[str, str]] = None,
     ) -> MatrixResponse:
-        """Delete a device.
+        """Delete a list of device.
         This API endpoint uses the User-Interactive Authentication API.
         This tells the server to delete the given devices and invalidate their
         associated access tokens.
@@ -844,12 +882,44 @@ class MatrixClient(BaseMatrixClient):
         Returns the HTTP method, HTTP path and data for the request.
         Args:
             devices (List[str]): A list of devices which will be deleted.
-            auth_dict (Dict): Additional authentication information for
+            auth (Dict): Additional authentication information for
                 the user-interactive authentication API.
 
         * Matrix Spec
+        POST /_matrix/client/r0/delete_devices HTTP/1.1
+        Content-Type: application/json
+
+        {
+            "devices": [
+                "QBUAZIFURK",
+                "AUIECTSRND"
+            ],
+            "auth": {
+                "type": "example.type.foo",
+                "session": "xxxxx",
+                "example_credential": "verypoorsharedsecret"
+            }
+        }
+
+        Rate-limited: No.
+        Requires auth: Yes.
         """
-        return MatrixResponse(httpx.Response(status_code=404, json={}))
+
+        json_data = dict(
+            filter(
+                lambda x: x[1],
+                {
+                    "devices": devices,
+                    "auth": auth,
+                }.items(),
+            )
+        )
+
+        return await self.auth_client(
+            "POST",
+            "delete_devices",
+            json=json_data,
+        )
 
     async def joined_members(self, room_id: str) -> MatrixResponse:
         """Get the list of joined members for a room.

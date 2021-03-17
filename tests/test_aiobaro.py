@@ -190,27 +190,69 @@ async def test_keys_claim(matrix_client):
     assert result.ok
 
 
+@pytest.mark.asyncio
 async def test_to_device(matrix_client):
-    args, kwargs = [], {}
-    result = await matrix_client.to_device(*args, **kwargs)
+    await test_register(matrix_client)
+    await test_login(matrix_client)
+
+    devices_info = await matrix_client.devices()
+    device_id = devices_info.json()["devices"][0]["device_id"]
+
+    event_type = "m.new_device"
+    tx_id = "35"
+
+    content = {
+        "messages": {
+            "@test_user:baro": {device_id: {"example_content_key": "value"}}
+        }
+    }
+
+    result = await matrix_client.to_device(event_type, content, tx_id)
     assert result.ok
 
 
+@pytest.mark.asyncio
 async def test_devices(matrix_client):
-    args, kwargs = [], {}
-    result = await matrix_client.devices(*args, **kwargs)
+    await test_register(matrix_client)
+    await test_login(matrix_client)
+
+    result = await matrix_client.devices()
     assert result.ok
 
 
+@pytest.mark.asyncio
 async def test_update_device(matrix_client):
-    args, kwargs = [], {}
-    result = await matrix_client.update_device(*args, **kwargs)
+    await test_register(matrix_client)
+    await test_login(matrix_client)
+
+    devices_info = await matrix_client.devices()
+    assert (
+        devices_info.json()["devices"][0]["display_name"]
+        == "Test_user' device"
+    )
+
+    device_id = devices_info.json()["devices"][0]["device_id"]
+
+    content = {"display_name": "Phone of Test User"}
+
+    result = await matrix_client.update_device(device_id, content)
     assert result.ok
 
 
+@pytest.mark.asyncio
 async def test_delete_devices(matrix_client):
-    args, kwargs = [], {}
-    result = await matrix_client.delete_devices(*args, **kwargs)
+    await test_register(matrix_client)
+    await test_login(matrix_client)
+
+    devices_info = await matrix_client.devices()
+    devices_to_delete = [devices_info.json()["devices"][1]["device_id"]]
+
+    auth = {
+        "type": "m.login.password",
+        "identifier": {"type": "m.id.user", "user": "test_user"},
+        "password": "test_password",
+    }
+    result = await matrix_client.delete_devices(devices_to_delete, auth=auth)
     assert result.ok
 
 
@@ -292,7 +334,7 @@ async def test_profile_get_displayname(matrix_client):
     user_id = "@test_user:baro"
     result = await matrix_client.profile_get_displayname(user_id)
     assert result.ok
-    assert result.json().get("displayname")
+    assert result.json().get("displayname") == "Test USER"
 
 
 @pytest.mark.asyncio
@@ -324,7 +366,7 @@ async def test_profile_get(matrix_client):
     user_id = "@test_user:baro"
     result = await matrix_client.profile_get(user_id)
     assert result.ok
-    assert result.json().get("displayname")
+    assert result.json().get("displayname") == "test_user"
 
 
 @pytest.mark.asyncio
@@ -346,7 +388,7 @@ async def test_get_presence(matrix_client):
     user_id = "@test_user:baro"
     result = await matrix_client.get_presence(user_id)
     assert result.ok
-    assert result.json().get("presence")
+    assert result.json().get("presence") == "online"
 
 
 @pytest.mark.asyncio
