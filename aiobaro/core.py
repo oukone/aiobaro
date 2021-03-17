@@ -800,10 +800,10 @@ class MatrixClient(BaseMatrixClient):
         Returns the HTTP method, HTTP path and data for the request.
         Args:
             event_type (str): The type of the event which will be sent.
-            tx_id (str): The transaction ID for this event.
-            messages (Dict): The messages to send. A map from user ID, to a map
+            content (Dict): The messages to send. A map from user ID, to a map
                 from device ID to message body. The device ID may also be *,
                 meaning all known devices for the user.
+            tx_id (str): The transaction ID for this event.
 
         * Matrix Spec
         PUT /_matrix/client/r0/sendToDevice/{eventType}/{txnId}
@@ -849,7 +849,8 @@ class MatrixClient(BaseMatrixClient):
         Returns the HTTP method, HTTP path and data for the request.
         Args:
             device_id (str): The device for which the metadata will be updated.
-            display_name (str): The new display name for this device. If not given, the display name is unchanged.
+            content (Dict): A dictionary of metadata values that will be
+                updated for the device.
 
         * Matrix Spec
         PUT /_matrix/client/r0/devices/{deviceId} HTTP/1.1
