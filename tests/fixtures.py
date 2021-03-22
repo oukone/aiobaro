@@ -48,8 +48,9 @@ async def seed_data(matrix_client):
     ]
     await matrix_client.login("seed_user_1", password="seed_password")
     devices = await matrix_client.devices()
+    room = await matrix_client.room_create(name="seed-data-room")
     return SeedData(
-        room=None,
+        room=room,
         users=users,
         devices=devices,
     )

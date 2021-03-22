@@ -343,12 +343,7 @@ class MatrixClient(BaseMatrixClient):
         Requires auth:  Yes.
         """
         return await self.auth_client(
-            "GET",
-            "rooms/{room_id}/event/{event_id}",
-            params={
-                "room_id": room_id,
-                "event_id": event_id,
-            },
+            "GET", f"rooms/{room_id}/event/{event_id}"
         )
 
     async def room_put_state(
@@ -416,13 +411,7 @@ class MatrixClient(BaseMatrixClient):
         Requires auth:  Yes.
         """
         return await self.auth_client(
-            "GET",
-            f"rooms/{room_id}/state/{event_type}/{state_key}",
-            params={
-                "room_id": room_id,
-                "event_type": event_type,
-                "state_key": state_key,
-            },
+            "GET", f"rooms/{room_id}/state/{event_type}/{state_key}"
         )
 
     async def room_get_state(self, room_id: str) -> MatrixResponse:
@@ -442,11 +431,7 @@ class MatrixClient(BaseMatrixClient):
         Rate-limited:   No.
         Requires auth:  Yes.
         """
-        return await self.auth_client(
-            "GET",
-            f"rooms/{room_id}/state",
-            params={"room_id": room_id},
-        )
+        return await self.auth_client("GET", f"rooms/{room_id}/state")
 
     async def room_redact(
         self,

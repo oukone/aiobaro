@@ -30,9 +30,7 @@ async def test_login(matrix_client):
 
 
 @pytest.mark.asyncio
-async def test_room_create(matrix_client):
-    await test_register(matrix_client)
-    await test_login(matrix_client)
+async def test_room_create(matrix_client, seed_data):
 
     room_alias_name = None
     name = "Room"
@@ -79,11 +77,11 @@ async def test_sync(matrix_client):
 
 
 @pytest.mark.asyncio
-async def test_room_send(matrix_client):
-    room_id = None
-    event_type = None
-    body = None
-    tx_id = None
+async def test_room_send(matrix_client, seed_data):
+    room_id = seed_data.room.json()["room_id"]
+    event_type = "m.aiobaro.text.msg"
+    body = {"body": "hello"}
+    tx_id = str(uuid.uuid1())
     result = await matrix_client.room_send(
         room_id,
         event_type,
@@ -91,30 +89,65 @@ async def test_room_send(matrix_client):
         tx_id,
     )
     assert result.ok
+    assert result.json()["event_id"]
 
 
 @pytest.mark.asyncio
-async def test_room_get_event(matrix_client):
-    room_id, event_id = None, None
+async def test_room_get_event(matrix_client, seed_data):
+    # Create an event
+    room_id = seed_data.room.json()["room_id"]
+    result = await matrix_client.room_send(
+        room_id,
+        "m.aiobaro.text.msg",
+        {"body": "TEST 0"},
+        str(uuid.uuid1()),
+    )
+    assert result.ok
+    event_id = result.json()["event_id"]
+
+    # get the event
     result = await matrix_client.room_get_event(room_id, event_id)
     assert result.ok
+    assert result.json()["content"]["body"] == "TEST 0"
 
 
-async def test_room_put_state(matrix_client):
-    args, kwargs = [], {}
-    result = await matrix_client.room_put_state(*args, **kwargs)
+@pytest.mark.asyncio
+async def test_room_put_state(matrix_client, seed_data):
+    result = await matrix_client.room_put_state(
+        room_id=seed_data.room.json()["room_id"],
+        event_type="m.aiobaro.state.event.tests",
+        body={"test.key": "test.value"},
+        state_key="state-key-test",
+    )
+    assert result.ok
+    assert result.json()["event_id"]
+
+
+@pytest.mark.asyncio
+async def test_room_get_state_event(matrix_client, seed_data):
+    room_id = seed_data.room.json()["room_id"]
+    event_type = "m.aiobaro.state.event.tests"
+    state_key = "state-key-test"
+
+    result = await matrix_client.room_put_state(
+        room_id=room_id,
+        event_type="m.aiobaro.state.event.tests",
+        body={"test.key": "test.value.1"},
+        state_key=state_key,
+    )
     assert result.ok
 
-
-async def test_room_get_state_event(matrix_client):
-    args, kwargs = [], {}
-    result = await matrix_client.room_get_state_event(*args, **kwargs)
+    result = await matrix_client.room_get_state_event(
+        room_id, event_type, state_key=state_key
+    )
     assert result.ok
+    assert result.json()["test.key"] == "test.value.1"
 
 
-async def test_room_get_state(matrix_client):
-    args, kwargs = [], {}
-    result = await matrix_client.room_get_state(*args, **kwargs)
+@pytest.mark.asyncio
+async def test_room_get_state(matrix_client, seed_data):
+    room_id = seed_data.room.json()["room_id"]
+    result = await matrix_client.room_get_state(room_id)
     assert result.ok
 
 
